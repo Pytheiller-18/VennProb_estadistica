@@ -59,6 +59,73 @@ def validate_prob_range(val: float, name: str) -> float:
     return clamp_prob(val)
 
 
+def solve_one_event(data: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Resuelve el problema de un solo evento A.
+    Calcula: P(A), P(Aᶜ), odds a favor, odds en contra y más.
+    """
+    input_mode  = data.get("input_mode", "probabilities")
+    sample_space = float(data.get("sample_space", 100)) if data.get("sample_space") else 100.0
+    names       = data.get("names", {})
+    name_a      = names.get("A", "Evento A")
+
+    steps: List[Dict[str, str]] = []
+
+    if input_mode == "counts":
+        count_a = float(data.get("count_a", 0))
+        p_a = calc_simple_prob(count_a, sample_space)
+        steps.append({
+            "title": "Paso 1: Cálculo de la Probabilidad Simple (Regla de Laplace)",
+            "formula": "P(A) = \\frac{|A|}{|S|}",
+            "calculation": f"P({name_a}) = \\frac{{{count_a}}}{{{sample_space}}} = {p_a:.4f}",
+            "explanation": "Dividimos el número de casos favorables entre el total de casos posibles del espacio muestral."
+        })
+    else:
+        p_a = validate_prob_range(float(data.get("p_a", 0)), f"P({name_a})")
+        steps.append({
+            "title": "Paso 1: Identificación de la Probabilidad Simple",
+            "formula": "0 \\le P(A) \\le 1",
+            "calculation": f"P({name_a}) = {p_a:.4f}",
+            "explanation": "La probabilidad ingresada cumple los axiomas de Kolmogorov."
+        })
+
+    p_not_a   = clamp_prob(1.0 - p_a)
+    odds_fav  = round(p_a / p_not_a, 4) if p_not_a > 0 else float("inf")
+    odds_con  = round(p_not_a / p_a, 4) if p_a > 0 else float("inf")
+
+    steps.append({
+        "title": "Paso 2: Probabilidad del Evento Complementario (Tercer Axioma)",
+        "formula": "P(A^c) = 1 - P(A)",
+        "calculation": f"P({name_a}^c) = 1 - {p_a:.4f} = {p_not_a:.4f}",
+        "explanation": "El complemento de A contiene todos los resultados que NO pertenecen a A. La suma P(A)+P(Aᶜ)=1 siempre."
+    })
+
+    steps.append({
+        "title": "Paso 3: Odds a Favor y en Contra del Evento",
+        "formula": "Odds\\ a\\ favor = \\frac{P(A)}{P(A^c)}, \\quad Odds\\ en\\ contra = \\frac{P(A^c)}{P(A)}",
+        "calculation": f"Odds\\ a\\ favor = \\frac{{{p_a:.4f}}}{{{p_not_a:.4f}}} = {odds_fav}, \\quad Odds\\ en\\ contra = {odds_con}",
+        "explanation": "Los odds expresan la razón entre la probabilidad favorable y la desfavorable, útil en análisis de riesgo."
+    })
+
+    return {
+        "status": "success",
+        "num_events": 1,
+        "sample_space_size": sample_space,
+        "input_mode": input_mode,
+        "typology": "Evento Simple",
+        "typology_description": f"Se analiza el evento individual '{name_a}' con su probabilidad, complemento y odds.",
+        "steps": steps,
+        "probabilities": {
+            f"P({name_a})":  p_a,
+            f"P(Aᶜ)":       p_not_a,
+            f"Odds a favor": odds_fav,
+            f"Odds en contra": odds_con
+        },
+        "regions": {},
+        "venn_data": []
+    }
+
+
 def solve_two_events(data: Dict[str, Any]) -> Dict[str, Any]:
     """
     Resuelve el problema de 2 eventos (A y B).

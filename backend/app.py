@@ -6,9 +6,9 @@ import os
 from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
 try:
-    from backend.logic import solve_two_events, solve_three_events, AxiomViolationError
+    from backend.logic import solve_one_event, solve_two_events, solve_three_events, AxiomViolationError
 except ImportError:
-    from logic import solve_two_events, solve_three_events, AxiomViolationError
+    from logic import solve_one_event, solve_two_events, solve_three_events, AxiomViolationError
 
 # Configuración de rutas estáticas para poder servir el frontend opcionalmente desde Flask
 FRONTEND_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "frontend"))
@@ -72,7 +72,9 @@ def solve():
         }), 400
 
     try:
-        if num_events == 2:
+        if num_events == 1:
+            result = solve_one_event(data)
+        elif num_events == 2:
             result = solve_two_events(data)
         elif num_events == 3:
             result = solve_three_events(data)

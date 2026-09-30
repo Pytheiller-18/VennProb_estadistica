@@ -3,15 +3,14 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>VennProb | Solucionador Experto de Probabilidad y Conjuntos</title>
-  <meta name="description" content="Aplicación interactiva para resolver problemas de probabilidad y teoría de conjuntos (2 y 3 eventos), con demostración matemática paso a paso y diagramas de Venn dinámicos.">
-  
-  <!-- Google Fonts: Outfit & JetBrains Mono -->
+  <title>VennProb | Probabilidad, Conjuntos y Calculadora Científica</title>
+  <meta name="description" content="Solucionador interactivo de probabilidad con 1, 2 y 3 eventos, diagrama de Venn por datos directos y calculadora científica estilo Casio FX-350ES Plus.">
+
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-  
-  <!-- KaTeX para renderizado de fórmulas matemáticas -->
+
+  <!-- KaTeX -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
   <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
@@ -20,371 +19,812 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/4.13.0/d3.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/venn.js/0.2.20/venn.min.js"></script>
 
-  <!-- Estilos de la aplicación -->
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <!-- Fondo con efectos lumínicos -->
+  <!-- Fondo lumínico -->
   <div class="ambient-glow glow-1"></div>
   <div class="ambient-glow glow-2"></div>
   <div class="ambient-glow glow-3"></div>
 
-  <!-- Header principal -->
+  <!-- ── HEADER ── -->
   <header class="app-header">
     <div class="header-container">
       <div class="brand">
         <div class="brand-icon">
-          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="9" cy="12" r="6" stroke="rgba(99, 102, 241, 0.9)" fill="rgba(99, 102, 241, 0.25)"></circle>
-            <circle cx="15" cy="12" r="6" stroke="rgba(244, 63, 94, 0.9)" fill="rgba(244, 63, 94, 0.25)"></circle>
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="9" cy="12" r="6" stroke="rgba(99,102,241,.9)" fill="rgba(99,102,241,.25)"></circle>
+            <circle cx="15" cy="12" r="6" stroke="rgba(244,63,94,.9)" fill="rgba(244,63,94,.25)"></circle>
           </svg>
         </div>
         <div>
-          <h1 class="brand-title">VennProb <span class="badge-tag">Inferential Engine</span></h1>
-          <p class="brand-subtitle">Automatización de Probabilidades, Axiomas de Kolmogorov y Diagramas de Venn</p>
+          <h1 class="brand-title">VennProb <span class="badge-tag">v2.0</span></h1>
+          <p class="brand-subtitle">Probabilidad · Conjuntos · Diagramas de Venn · Calculadora Científica</p>
         </div>
       </div>
-      
       <div class="header-actions">
         <div class="api-status-pill" id="api-status-indicator">
           <span class="status-dot"></span>
-          <span id="api-status-text">Conectando al Motor...</span>
+          <span id="api-status-text">Conectando...</span>
         </div>
       </div>
     </div>
   </header>
 
-  <!-- Contenedor Principal -->
-  <main class="main-layout">
-    
-    <!-- Panel Izquierdo: Configuración e Inputs -->
-    <section class="panel panel-input" aria-label="Configuración de Datos">
-      
-      <!-- Selector de Modo de Eventos: 2 vs 3 -->
-      <div class="section-card">
-        <label class="control-label">Número de Eventos</label>
-        <div class="segmented-control" role="tablist">
-          <button type="button" class="segment-btn active" id="btn-mode-2" role="tab" aria-selected="true">
-            <span class="segment-icon">2</span>
-            <span>2 Eventos (A, B)</span>
-          </button>
-          <button type="button" class="segment-btn" id="btn-mode-3" role="tab" aria-selected="false">
-            <span class="segment-icon">3</span>
-            <span>3 Eventos (A, B, C)</span>
-          </button>
-        </div>
-      </div>
+  <!-- ── NAVIGATION TABS ── -->
+  <nav class="app-nav" role="navigation" aria-label="Módulos de la aplicación">
+    <div class="nav-container">
+      <button class="nav-tab active" data-tab="solver" id="nav-solver">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="12" r="6"/><circle cx="15" cy="12" r="6"/></svg>
+        Solucionador de Probabilidad
+      </button>
+      <button class="nav-tab" data-tab="venn-direct" id="nav-venn-direct">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+        Diagrama de Venn (Datos Directos)
+      </button>
+      <button class="nav-tab" data-tab="examples" id="nav-examples">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+        Ejemplos y Ejercicios
+      </button>
+      <button class="nav-tab" data-tab="calculator" id="nav-calculator">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="8" y1="6" x2="16" y2="6"/><line x1="8" y1="10" x2="16" y2="10"/><line x1="8" y1="14" x2="12" y2="14"/><line x1="15" y1="14" x2="16" y2="14"/><line x1="8" y1="18" x2="12" y2="18"/><line x1="15" y1="18" x2="16" y2="18"/></svg>
+        Calculadora Científica
+      </button>
+    </div>
+  </nav>
 
-      <!-- Selector de Formato de Entrada: Probabilidades vs Conteos -->
-      <div class="section-card">
-        <div class="card-header-row">
-          <label class="control-label">Unidad de Entrada</label>
-          <div class="radio-pill-group">
-            <label class="radio-pill">
-              <input type="radio" name="input_mode" value="probabilities" id="mode-prob" checked>
-              <span>Probabilidad [0 a 1]</span>
-            </label>
-            <label class="radio-pill">
-              <input type="radio" name="input_mode" value="counts" id="mode-counts">
-              <span>Conteos / Frecuencias (|E|, |S|)</span>
-            </label>
-          </div>
-        </div>
+  <!-- ═══════════════════════════════════════════════════════════
+       TAB 1 — SOLUCIONADOR DE PROBABILIDAD
+       ═══════════════════════════════════════════════════════════ -->
+  <div class="tab-panel active" id="panel-solver">
+    <div class="main-layout">
 
-        <!-- Presets de Ejemplo -->
-        <div class="presets-row">
-          <span class="presets-label">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
-            Ejemplos:
-          </span>
-          <select id="example-presets-select" class="presets-select">
-            <option value="">Seleccionar problema predeterminado...</option>
-            <option value="preset-2-intersecting">2 Eventos: Estudiantes (Matemáticas e Inglés)</option>
-            <option value="preset-2-disjoint">2 Eventos: Dados (Número Par e Impar - Disjuntos)</option>
-            <option value="preset-2-union">2 Eventos: Despeje de Intersección a partir de Unión</option>
-            <option value="preset-3-classic">3 Eventos: Plataformas Streaming (Netflix, Spotify, Prime)</option>
-            <option value="preset-3-deduce">3 Eventos: Deducción de Intersección Triple P(A∩B∩C)</option>
-            <option value="preset-3-counts">3 Eventos con Conteos: Encuesta de 200 personas</option>
-          </select>
-        </div>
-      </div>
+      <!-- ── LEFT PANEL: Inputs ── -->
+      <section class="panel panel-input" aria-label="Configuración del Problema">
 
-      <!-- Formulario de Entrada Dinámico -->
-      <form id="prob-form" class="data-form" novalidate>
-        
-        <!-- Campo Espacio Muestral (visible solo en modo conteos) -->
-        <div id="sample-space-container" class="form-group-special hidden">
-          <div class="input-header">
-            <label for="input-sample-space">Tamaño del Espacio Muestral (|S|)</label>
-            <span class="hint-tag">Población total N</span>
-          </div>
-          <div class="input-wrapper">
-            <span class="input-prefix">|S| =</span>
-            <input type="number" id="input-sample-space" name="sample_space" value="100" min="1" step="1" placeholder="Ej: 100">
-          </div>
-        </div>
-
-        <!-- Nombres y Tamaños de Eventos Individuales -->
+        <!-- Selector número de eventos -->
         <div class="section-card">
-          <h3 class="section-title">Eventos Principales</h3>
-          <div class="events-grid">
-            
-            <!-- Evento A -->
-            <div class="event-input-box event-a-theme">
-              <div class="event-tag">
-                <span class="event-color-dot dot-a"></span>
-                <input type="text" id="name-a" name="name_a" value="Evento A" class="event-name-input" title="Nombre de A">
-              </div>
-              <div class="input-wrapper">
-                <span class="input-prefix prefix-a" id="prefix-a">P(A) =</span>
-                <input type="number" id="val-a" name="val_a" value="0.6" step="any" required placeholder="0.60">
-              </div>
-            </div>
-
-            <!-- Evento B -->
-            <div class="event-input-box event-b-theme">
-              <div class="event-tag">
-                <span class="event-color-dot dot-b"></span>
-                <input type="text" id="name-b" name="name_b" value="Evento B" class="event-name-input" title="Nombre de B">
-              </div>
-              <div class="input-wrapper">
-                <span class="input-prefix prefix-b" id="prefix-b">P(B) =</span>
-                <input type="number" id="val-b" name="val_b" value="0.5" step="any" required placeholder="0.50">
-              </div>
-            </div>
-
-            <!-- Evento C (Solo en modo 3 eventos) -->
-            <div class="event-input-box event-c-theme hidden" id="box-event-c">
-              <div class="event-tag">
-                <span class="event-color-dot dot-c"></span>
-                <input type="text" id="name-c" name="name_c" value="Evento C" class="event-name-input" title="Nombre de C">
-              </div>
-              <div class="input-wrapper">
-                <span class="input-prefix prefix-c" id="prefix-c">P(C) =</span>
-                <input type="number" id="val-c" name="val_c" value="0.4" step="any" placeholder="0.40">
-              </div>
-            </div>
-
-          </div>
-        </div>
-
-        <!-- Sección de Relaciones para 2 Eventos -->
-        <div id="section-rel-2" class="section-card">
-          <div class="card-header-row">
-            <h3 class="section-title">Relación entre A y B</h3>
-            <label class="toggle-switch-label" title="Activa si los eventos no pueden ocurrir al mismo tiempo">
-              <input type="checkbox" id="check-disjoint" name="is_disjoint">
-              <span class="switch-ui"></span>
-              <span class="switch-text">¿Eventos Disjuntos?</span>
-            </label>
-          </div>
-
-          <div id="disjoint-hint" class="info-alert hidden">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
-            <span>Al ser disjuntos: <strong>P(A ∩ B) = 0</strong> y <strong>P(A ∪ B) = P(A) + P(B)</strong>.</span>
-          </div>
-
-          <div id="container-2-inter-union" class="dual-input-row">
-            <div class="input-group">
-              <div class="input-header">
-                <label for="val-ab" id="label-ab">Intersección P(A ∩ B)</label>
-                <span class="badge-sub">Ambos</span>
-              </div>
-              <div class="input-wrapper">
-                <span class="input-prefix" id="prefix-ab">∩ =</span>
-                <input type="number" id="val-ab" name="val_ab" value="0.3" step="any" placeholder="0.30">
-              </div>
-            </div>
-
-            <div class="input-group">
-              <div class="input-header">
-                <label for="val-union-ab" id="label-union-ab">O Unión P(A ∪ B)</label>
-                <span class="badge-sub">Opcional</span>
-              </div>
-              <div class="input-wrapper">
-                <span class="input-prefix" id="prefix-union-ab">∪ =</span>
-                <input type="number" id="val-union-ab" name="val_union_ab" step="any" placeholder="Auto-calculada">
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Sección de Relaciones para 3 Eventos -->
-        <div id="section-rel-3" class="section-card hidden">
-          <h3 class="section-title">Intersecciones Dobles (Pares)</h3>
-          <div class="pairs-grid">
-            <div class="input-group">
-              <label for="val-3-ab" id="label-3-ab">P(A ∩ B)</label>
-              <div class="input-wrapper">
-                <span class="input-prefix">A∩B</span>
-                <input type="number" id="val-3-ab" name="val_3_ab" value="0.20" step="any" placeholder="0.20">
-              </div>
-            </div>
-            <div class="input-group">
-              <label for="val-3-ac" id="label-3-ac">P(A ∩ C)</label>
-              <div class="input-wrapper">
-                <span class="input-prefix">A∩C</span>
-                <input type="number" id="val-3-ac" name="val_3_ac" value="0.15" step="any" placeholder="0.15">
-              </div>
-            </div>
-            <div class="input-group">
-              <label for="val-3-bc" id="label-3-bc">P(B ∩ C)</label>
-              <div class="input-wrapper">
-                <span class="input-prefix">B∩C</span>
-                <input type="number" id="val-3-bc" name="val_3_bc" value="0.12" step="any" placeholder="0.12">
-              </div>
-            </div>
-          </div>
-
-          <h3 class="section-title mt-4">Intersección Triple vs Unión Total</h3>
-          <p class="section-desc">Ingresa <strong>P(A ∩ B ∩ C)</strong> o bien la <strong>Unión Total P(A ∪ B ∪ C)</strong> para que el motor deduzca la otra.</p>
-          
-          <div class="dual-input-row">
-            <div class="input-group">
-              <div class="input-header">
-                <label for="val-3-abc" id="label-3-abc">Intersección P(A ∩ B ∩ C)</label>
-                <span class="badge-sub">Los 3</span>
-              </div>
-              <div class="input-wrapper">
-                <span class="input-prefix">∩ ∩</span>
-                <input type="number" id="val-3-abc" name="val_3_abc" value="0.05" step="any" placeholder="0.05">
-              </div>
-            </div>
-
-            <div class="input-group">
-              <div class="input-header">
-                <label for="val-3-union" id="label-3-union">Unión Total P(A ∪ B ∪ C)</label>
-                <span class="badge-sub">Opcional</span>
-              </div>
-              <div class="input-wrapper">
-                <span class="input-prefix">∪ ∪</span>
-                <input type="number" id="val-3-union" name="val_3_union" step="any" placeholder="Auto-calculada">
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Botones de Acción -->
-        <div class="form-actions">
-          <button type="submit" id="btn-calculate" class="btn btn-primary">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-            <span>Resolver y Generar Diagrama de Venn</span>
-          </button>
-          <button type="button" id="btn-reset" class="btn btn-secondary" title="Restablecer valores">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
-          </button>
-        </div>
-
-      </form>
-
-      <!-- Banner de Error Axiomático (Kolmogorov) -->
-      <div id="axiom-error-banner" class="axiom-banner hidden" role="alert">
-        <div class="axiom-banner-icon">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-        </div>
-        <div class="axiom-banner-content">
-          <h4 class="axiom-banner-title" id="axiom-error-title">Inconsistencia Axiomática Detectada</h4>
-          <p class="axiom-banner-desc" id="axiom-error-message"></p>
-        </div>
-      </div>
-
-    </section>
-
-    <!-- Panel Derecho: Visualización y Resolución Paso a Paso -->
-    <section class="panel panel-results" aria-label="Resultados y Visualización">
-      
-      <!-- Banner de Tipología de Eventos -->
-      <div id="typology-card" class="typology-card">
-        <div class="typology-header">
-          <span class="typology-badge" id="typology-badge">Cargando análisis...</span>
-          <span class="typology-events-count" id="typology-events-count">2 Eventos</span>
-        </div>
-        <p class="typology-description" id="typology-description">
-          Ingresa los datos del problema o selecciona un ejemplo predefinido para comenzar el cálculo probabilístico.
-        </p>
-      </div>
-
-      <!-- Contenedor del Diagrama de Venn -->
-      <div class="venn-section-card">
-        <div class="venn-header-bar">
-          <div class="venn-header-left">
-            <h2 class="venn-card-title">Diagrama de Venn Dinámico</h2>
-            <span class="venn-engine-tag">Motor D3.js + Venn.js</span>
-          </div>
-          <div class="venn-actions">
-            <button type="button" id="btn-download-svg" class="btn-icon-subtle" title="Exportar Diagrama como SVG">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-              <span>SVG</span>
+          <label class="control-label">Número de Eventos</label>
+          <div class="segmented-control" role="tablist">
+            <button type="button" class="segment-btn active" id="btn-mode-1" data-events="1">
+              <span class="segment-icon">1</span><span>Un Evento</span>
+            </button>
+            <button type="button" class="segment-btn" id="btn-mode-2" data-events="2">
+              <span class="segment-icon">2</span><span>A, B</span>
+            </button>
+            <button type="button" class="segment-btn" id="btn-mode-3" data-events="3">
+              <span class="segment-icon">3</span><span>A, B, C</span>
             </button>
           </div>
         </div>
 
-        <div class="venn-diagram-wrapper">
-          <div id="venn-diagram" class="venn-container"></div>
-          <!-- Tooltip flotante interactivo para Venn -->
-          <div id="venn-tooltip" class="venn-tooltip"></div>
+        <!-- Unidad de entrada -->
+        <div class="section-card">
+          <label class="control-label">Formato de Datos</label>
+          <div class="radio-pill-group">
+            <label class="radio-pill">
+              <input type="radio" name="input_mode" value="probabilities" id="mode-prob" checked>
+              <span>Probabilidad [0–1]</span>
+            </label>
+            <label class="radio-pill">
+              <input type="radio" name="input_mode" value="counts" id="mode-counts">
+              <span>Conteos |E|, |S|</span>
+            </label>
+          </div>
         </div>
 
-        <!-- Métricas Rápidas / Resumen de Regiones Mutuamente Excluyentes -->
-        <div class="regions-summary-container">
-          <h3 class="regions-title">Partición Disjunta del Espacio Muestral (Axioma de Aditividad)</h3>
-          <div id="regions-grid" class="regions-grid">
-            <!-- Inyectado dinámicamente -->
+        <!-- Formulario -->
+        <form id="prob-form" class="data-form" novalidate>
+
+          <!-- Espacio Muestral (solo en conteos) -->
+          <div id="sample-space-container" class="form-group-special hidden">
+            <div class="input-header">
+              <label for="input-sample-space">Tamaño del Espacio Muestral |S|</label>
+              <span class="hint-tag">Población total N</span>
+            </div>
+            <div class="input-wrapper">
+              <span class="input-prefix">|S| =</span>
+              <input type="number" id="input-sample-space" value="100" min="1" step="1" placeholder="100">
+            </div>
+          </div>
+
+          <!-- ── BLOQUE 1 EVENTO ── -->
+          <div id="block-1-event" class="section-card hidden">
+            <h3 class="section-title">Datos del Evento</h3>
+            <div class="event-input-box event-a-theme">
+              <div class="event-tag">
+                <span class="event-color-dot dot-a"></span>
+                <input type="text" id="name-a1" value="Evento A" class="event-name-input">
+              </div>
+              <div class="input-wrapper">
+                <span class="input-prefix prefix-a1" id="prefix-a1">P(A) =</span>
+                <input type="number" id="val-a1" value="0.35" step="any" min="0" max="1" placeholder="0.35">
+              </div>
+            </div>
+            <p class="section-desc mt-2">Para un solo evento se calculará la probabilidad, su complemento P(Aᶜ), odds a favor y en contra.</p>
+          </div>
+
+          <!-- ── BLOQUE 2 EVENTOS ── -->
+          <div id="block-2-events" class="section-card hidden">
+            <h3 class="section-title">Eventos Individuales</h3>
+            <div class="events-grid">
+              <div class="event-input-box event-a-theme">
+                <div class="event-tag">
+                  <span class="event-color-dot dot-a"></span>
+                  <input type="text" id="name-a" value="Evento A" class="event-name-input">
+                </div>
+                <div class="input-wrapper">
+                  <span class="input-prefix prefix-a" id="prefix-a">P(A) =</span>
+                  <input type="number" id="val-a" value="0.6" step="any" min="0" max="1" placeholder="0.60">
+                </div>
+              </div>
+              <div class="event-input-box event-b-theme">
+                <div class="event-tag">
+                  <span class="event-color-dot dot-b"></span>
+                  <input type="text" id="name-b" value="Evento B" class="event-name-input">
+                </div>
+                <div class="input-wrapper">
+                  <span class="input-prefix prefix-b" id="prefix-b">P(B) =</span>
+                  <input type="number" id="val-b" value="0.5" step="any" min="0" max="1" placeholder="0.50">
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ── BLOQUE 2 EVENTOS – Relaciones ── -->
+          <div id="section-rel-2" class="section-card hidden">
+            <div class="card-header-row">
+              <h3 class="section-title">Relación entre A y B</h3>
+              <label class="toggle-switch-label">
+                <input type="checkbox" id="check-disjoint">
+                <span class="switch-ui"></span>
+                <span class="switch-text">¿Disjuntos?</span>
+              </label>
+            </div>
+            <div id="disjoint-hint" class="info-alert hidden">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+              <span>Disjuntos: <strong>P(A∩B)=0</strong> y <strong>P(A∪B)=P(A)+P(B)</strong></span>
+            </div>
+            <div class="dual-input-row">
+              <div class="input-group">
+                <div class="input-header">
+                  <label for="val-ab">Intersección P(A∩B)</label>
+                  <span class="badge-sub">Ambos ocurren</span>
+                </div>
+                <div class="input-wrapper">
+                  <span class="input-prefix">∩ =</span>
+                  <input type="number" id="val-ab" value="0.3" step="any" min="0" max="1" placeholder="0.30">
+                </div>
+              </div>
+              <div class="input-group">
+                <div class="input-header">
+                  <label for="val-union-ab">O Unión P(A∪B)</label>
+                  <span class="badge-sub">Opcional</span>
+                </div>
+                <div class="input-wrapper">
+                  <span class="input-prefix">∪ =</span>
+                  <input type="number" id="val-union-ab" step="any" min="0" max="1" placeholder="Auto">
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ── BLOQUE 3 EVENTOS ── -->
+          <div id="block-3-events" class="section-card hidden">
+            <h3 class="section-title">Eventos Individuales</h3>
+            <div class="events-grid">
+              <div class="event-input-box event-a-theme">
+                <div class="event-tag">
+                  <span class="event-color-dot dot-a"></span>
+                  <input type="text" id="name-3a" value="Evento A" class="event-name-input">
+                </div>
+                <div class="input-wrapper">
+                  <span class="input-prefix prefix-3a" id="prefix-3a">P(A) =</span>
+                  <input type="number" id="val-3a" value="0.50" step="any" min="0" max="1" placeholder="0.50">
+                </div>
+              </div>
+              <div class="event-input-box event-b-theme">
+                <div class="event-tag">
+                  <span class="event-color-dot dot-b"></span>
+                  <input type="text" id="name-3b" value="Evento B" class="event-name-input">
+                </div>
+                <div class="input-wrapper">
+                  <span class="input-prefix prefix-3b" id="prefix-3b">P(B) =</span>
+                  <input type="number" id="val-3b" value="0.40" step="any" min="0" max="1" placeholder="0.40">
+                </div>
+              </div>
+              <div class="event-input-box event-c-theme">
+                <div class="event-tag">
+                  <span class="event-color-dot dot-c"></span>
+                  <input type="text" id="name-3c" value="Evento C" class="event-name-input">
+                </div>
+                <div class="input-wrapper">
+                  <span class="input-prefix prefix-3c" id="prefix-3c">P(C) =</span>
+                  <input type="number" id="val-3c" value="0.35" step="any" min="0" max="1" placeholder="0.35">
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ── BLOQUE 3 EVENTOS – Intersecciones ── -->
+          <div id="section-rel-3" class="section-card hidden">
+            <h3 class="section-title">Intersecciones Dobles (Pares)</h3>
+            <div class="pairs-grid">
+              <div class="input-group">
+                <label for="val-3-ab">P(A∩B)</label>
+                <div class="input-wrapper">
+                  <span class="input-prefix prefix-3ab">A∩B</span>
+                  <input type="number" id="val-3-ab" value="0.20" step="any" min="0" max="1" placeholder="0.20">
+                </div>
+              </div>
+              <div class="input-group">
+                <label for="val-3-ac">P(A∩C)</label>
+                <div class="input-wrapper">
+                  <span class="input-prefix prefix-3ac">A∩C</span>
+                  <input type="number" id="val-3-ac" value="0.15" step="any" min="0" max="1" placeholder="0.15">
+                </div>
+              </div>
+              <div class="input-group">
+                <label for="val-3-bc">P(B∩C)</label>
+                <div class="input-wrapper">
+                  <span class="input-prefix prefix-3bc">B∩C</span>
+                  <input type="number" id="val-3-bc" value="0.12" step="any" min="0" max="1" placeholder="0.12">
+                </div>
+              </div>
+            </div>
+            <h3 class="section-title mt-4">Intersección Triple · Unión Total</h3>
+            <p class="section-desc">Proporciona <strong>P(A∩B∩C)</strong> O la <strong>P(A∪B∪C)</strong> — el motor deducirá la otra.</p>
+            <div class="dual-input-row">
+              <div class="input-group">
+                <div class="input-header">
+                  <label for="val-3-abc">P(A∩B∩C)</label>
+                  <span class="badge-sub">Los 3</span>
+                </div>
+                <div class="input-wrapper">
+                  <span class="input-prefix prefix-3abc">∩∩</span>
+                  <input type="number" id="val-3-abc" value="0.05" step="any" min="0" max="1" placeholder="0.05">
+                </div>
+              </div>
+              <div class="input-group">
+                <div class="input-header">
+                  <label for="val-3-union">P(A∪B∪C)</label>
+                  <span class="badge-sub">Opcional</span>
+                </div>
+                <div class="input-wrapper">
+                  <span class="input-prefix">∪∪</span>
+                  <input type="number" id="val-3-union" step="any" min="0" max="1" placeholder="Auto">
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Acciones -->
+          <div class="form-actions">
+            <button type="submit" id="btn-calculate" class="btn btn-primary">
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+              <span>Resolver y Graficar</span>
+            </button>
+            <button type="button" id="btn-reset" class="btn btn-secondary" title="Limpiar campos">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+            </button>
+          </div>
+        </form>
+
+        <!-- Error Axiomático -->
+        <div id="axiom-error-banner" class="axiom-banner hidden" role="alert">
+          <div class="axiom-banner-icon">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          </div>
+          <div class="axiom-banner-content">
+            <h4 class="axiom-banner-title">Inconsistencia Axiomática (Kolmogorov)</h4>
+            <p class="axiom-banner-desc" id="axiom-error-message"></p>
+          </div>
+          <button class="axiom-close-btn" id="axiom-close-btn" title="Cerrar">✕</button>
+        </div>
+
+      </section>
+
+      <!-- ── RIGHT PANEL: Results ── -->
+      <section class="panel panel-results" aria-label="Resultados">
+
+        <!-- Tipología -->
+        <div id="typology-card" class="typology-card">
+          <div class="typology-header">
+            <span class="typology-badge" id="typology-badge">Listo para calcular</span>
+            <span class="typology-events-count" id="typology-events-count">—</span>
+          </div>
+          <p class="typology-description" id="typology-description">
+            Completa el formulario y pulsa <strong>Resolver y Graficar</strong> para obtener la solución completa.
+          </p>
+        </div>
+
+        <!-- Diagrama de Venn -->
+        <div class="venn-section-card">
+          <div class="venn-header-bar">
+            <div class="venn-header-left">
+              <h2 class="venn-card-title">Diagrama de Venn</h2>
+              <span class="venn-engine-tag">D3.js + Venn.js</span>
+            </div>
+            <button type="button" id="btn-download-svg" class="btn-icon-subtle" title="Exportar SVG">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              SVG
+            </button>
+          </div>
+          <div class="venn-diagram-wrapper">
+            <div id="venn-diagram" class="venn-container">
+              <div class="venn-placeholder">
+                <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="rgba(99,102,241,.3)" stroke-width="1.5"><circle cx="9" cy="12" r="6"/><circle cx="15" cy="12" r="6"/></svg>
+                <p>Ingresa los datos y resuelve para ver el diagrama</p>
+              </div>
+            </div>
+            <div id="venn-tooltip" class="venn-tooltip"></div>
+          </div>
+          <div class="regions-summary-container" id="regions-summary-container">
+            <h3 class="regions-title">Partición Disjunta del Espacio Muestral</h3>
+            <div id="regions-grid" class="regions-grid"></div>
+          </div>
+        </div>
+
+        <!-- Pasos Matemáticos -->
+        <div class="steps-section-card" id="steps-section">
+          <div class="steps-header-bar">
+            <div class="steps-header-left">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+              <h2 class="steps-card-title">Resolución Paso a Paso</h2>
+            </div>
+            <span class="steps-count-badge" id="steps-count-badge">0 pasos</span>
+          </div>
+          <div id="steps-container" class="steps-list"></div>
+        </div>
+
+        <!-- Tabla de Métricas -->
+        <div class="metrics-section-card" id="metrics-section">
+          <h3 class="metrics-title">Tabla de Probabilidades y Métricas</h3>
+          <div class="table-responsive">
+            <table class="metrics-table">
+              <thead>
+                <tr>
+                  <th>Notación</th>
+                  <th>Valor P(E)</th>
+                  <th>%</th>
+                  <th>Conteo ~</th>
+                  <th>Interpretación</th>
+                </tr>
+              </thead>
+              <tbody id="metrics-table-body"></tbody>
+            </table>
+          </div>
+        </div>
+
+      </section>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════
+       TAB 2 — DIAGRAMA DE VENN: DATOS DIRECTOS
+       ═══════════════════════════════════════════════════════════ -->
+  <div class="tab-panel" id="panel-venn-direct">
+    <div class="main-layout">
+
+      <!-- Left: Form -->
+      <section class="panel panel-input" aria-label="Datos directos para Venn">
+        <div class="section-card">
+          <h2 class="section-title" style="font-size:1.1rem;margin-bottom:.5rem">Diagrama de Venn por Tamaños de Región</h2>
+          <p class="section-desc">Introduce directamente el tamaño o cantidad de cada región del diagrama. El motor graficará sin necesidad de calcular probabilidades.</p>
+        </div>
+
+        <div class="section-card">
+          <label class="control-label">Número de Eventos</label>
+          <div class="segmented-control">
+            <button type="button" class="segment-btn active" data-direct-events="2" id="vd-btn-2">
+              <span class="segment-icon">2</span><span>2 Conjuntos</span>
+            </button>
+            <button type="button" class="segment-btn" data-direct-events="3" id="vd-btn-3">
+              <span class="segment-icon">3</span><span>3 Conjuntos</span>
+            </button>
+          </div>
+        </div>
+
+        <form id="venn-direct-form" class="data-form" novalidate>
+
+          <!-- Nombres de conjuntos -->
+          <div class="section-card">
+            <h3 class="section-title">Nombres de los Conjuntos</h3>
+            <div class="events-grid">
+              <div class="event-input-box event-a-theme">
+                <div class="event-tag">
+                  <span class="event-color-dot dot-a"></span>
+                  <input type="text" id="vd-name-a" value="Conjunto A" class="event-name-input">
+                </div>
+              </div>
+              <div class="event-input-box event-b-theme">
+                <div class="event-tag">
+                  <span class="event-color-dot dot-b"></span>
+                  <input type="text" id="vd-name-b" value="Conjunto B" class="event-name-input">
+                </div>
+              </div>
+              <div class="event-input-box event-c-theme" id="vd-box-c">
+                <div class="event-tag">
+                  <span class="event-color-dot dot-c"></span>
+                  <input type="text" id="vd-name-c" value="Conjunto C" class="event-name-input">
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Regiones para 2 conjuntos -->
+          <div class="section-card" id="vd-regions-2">
+            <h3 class="section-title">Tamaño de Regiones (2 Conjuntos)</h3>
+            <p class="section-desc">Ingresa directamente cuántos elementos pertenecen a cada región exclusiva.</p>
+            <div class="events-grid">
+              <div class="input-group">
+                <div class="input-header">
+                  <label for="vd-only-a">Solo A</label>
+                  <span class="hint-tag" style="background:rgba(99,102,241,.2);color:#c7d2fe">A exclusivo</span>
+                </div>
+                <div class="input-wrapper">
+                  <span class="input-prefix" style="color:#6366f1">A\B</span>
+                  <input type="number" id="vd-only-a" value="30" min="0" step="any" placeholder="30">
+                </div>
+              </div>
+              <div class="input-group">
+                <div class="input-header">
+                  <label for="vd-only-b">Solo B</label>
+                  <span class="hint-tag" style="background:rgba(236,72,153,.2);color:#fbcfe8">B exclusivo</span>
+                </div>
+                <div class="input-wrapper">
+                  <span class="input-prefix" style="color:#ec4899">B\A</span>
+                  <input type="number" id="vd-only-b" value="20" min="0" step="any" placeholder="20">
+                </div>
+              </div>
+              <div class="input-group">
+                <div class="input-header">
+                  <label for="vd-inter-ab">A ∩ B</label>
+                  <span class="hint-tag" style="background:rgba(168,85,247,.2);color:#e9d5ff">Intersección</span>
+                </div>
+                <div class="input-wrapper">
+                  <span class="input-prefix" style="color:#a855f7">A∩B</span>
+                  <input type="number" id="vd-inter-ab" value="10" min="0" step="any" placeholder="10">
+                </div>
+              </div>
+              <div class="input-group">
+                <div class="input-header">
+                  <label for="vd-neither-2">Ninguno</label>
+                  <span class="hint-tag">Exterior</span>
+                </div>
+                <div class="input-wrapper">
+                  <span class="input-prefix" style="color:#64748b">∅</span>
+                  <input type="number" id="vd-neither-2" value="40" min="0" step="any" placeholder="40">
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Regiones para 3 conjuntos -->
+          <div class="section-card hidden" id="vd-regions-3">
+            <h3 class="section-title">Tamaño de Regiones (3 Conjuntos)</h3>
+            <p class="section-desc">Ingresa el número de elementos de cada una de las 8 regiones disjuntas del diagrama de Venn.</p>
+            <div class="pairs-grid" style="grid-template-columns: 1fr 1fr;">
+              <div class="input-group">
+                <label for="vd-3-only-a">Solo A</label>
+                <div class="input-wrapper"><span class="input-prefix" style="color:#6366f1">A</span><input type="number" id="vd-3-only-a" value="20" min="0" step="any" placeholder="20"></div>
+              </div>
+              <div class="input-group">
+                <label for="vd-3-only-b">Solo B</label>
+                <div class="input-wrapper"><span class="input-prefix" style="color:#ec4899">B</span><input type="number" id="vd-3-only-b" value="15" min="0" step="any" placeholder="15"></div>
+              </div>
+              <div class="input-group">
+                <label for="vd-3-only-c">Solo C</label>
+                <div class="input-wrapper"><span class="input-prefix" style="color:#06b6d4">C</span><input type="number" id="vd-3-only-c" value="13" min="0" step="any" placeholder="13"></div>
+              </div>
+              <div class="input-group">
+                <label for="vd-3-only-ab">Solo A∩B</label>
+                <div class="input-wrapper"><span class="input-prefix" style="color:#a855f7">AB</span><input type="number" id="vd-3-only-ab" value="15" min="0" step="any" placeholder="15"></div>
+              </div>
+              <div class="input-group">
+                <label for="vd-3-only-ac">Solo A∩C</label>
+                <div class="input-wrapper"><span class="input-prefix" style="color:#3b82f6">AC</span><input type="number" id="vd-3-only-ac" value="10" min="0" step="any" placeholder="10"></div>
+              </div>
+              <div class="input-group">
+                <label for="vd-3-only-bc">Solo B∩C</label>
+                <div class="input-wrapper"><span class="input-prefix" style="color:#14b8a6">BC</span><input type="number" id="vd-3-only-bc" value="7" min="0" step="any" placeholder="7"></div>
+              </div>
+              <div class="input-group">
+                <label for="vd-3-abc">A∩B∩C</label>
+                <div class="input-wrapper"><span class="input-prefix" style="color:#f59e0b">ABC</span><input type="number" id="vd-3-abc" value="5" min="0" step="any" placeholder="5"></div>
+              </div>
+              <div class="input-group">
+                <label for="vd-3-neither">Ninguno</label>
+                <div class="input-wrapper"><span class="input-prefix" style="color:#64748b">∅</span><input type="number" id="vd-3-neither" value="15" min="0" step="any" placeholder="15"></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-actions">
+            <button type="submit" id="btn-vd-draw" class="btn btn-primary">
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+              Generar Diagrama de Venn
+            </button>
+          </div>
+        </form>
+      </section>
+
+      <!-- Right: Venn directo -->
+      <section class="panel panel-results" aria-label="Diagrama de Venn directo">
+        <div class="venn-section-card">
+          <div class="venn-header-bar">
+            <div class="venn-header-left">
+              <h2 class="venn-card-title">Diagrama de Venn</h2>
+              <span class="venn-engine-tag">Datos Directos</span>
+            </div>
+            <button type="button" id="btn-vd-download" class="btn-icon-subtle" title="Exportar SVG">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              SVG
+            </button>
+          </div>
+          <div class="venn-diagram-wrapper">
+            <div id="venn-direct-diagram" class="venn-container">
+              <div class="venn-placeholder">
+                <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="rgba(99,102,241,.3)" stroke-width="1.5"><circle cx="9" cy="12" r="6"/><circle cx="15" cy="12" r="6"/></svg>
+                <p>Completa los datos y pulsa "Generar Diagrama de Venn"</p>
+              </div>
+            </div>
+            <div id="venn-direct-tooltip" class="venn-tooltip"></div>
+          </div>
+          <div class="regions-summary-container">
+            <h3 class="regions-title">Resumen de Regiones</h3>
+            <div id="vd-regions-summary" class="regions-grid"></div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════
+       TAB 3 — EJEMPLOS Y EJERCICIOS
+       ═══════════════════════════════════════════════════════════ -->
+  <div class="tab-panel" id="panel-examples">
+    <div class="examples-layout">
+      <div class="examples-header">
+        <h2 class="examples-main-title">Ejercicios y Problemas de Probabilidad</h2>
+        <p class="examples-desc">Selecciona cualquier ejercicio para cargarlo automáticamente en el Solucionador.</p>
+      </div>
+
+      <div class="examples-grid">
+        <!-- 2 Eventos: Intersecantes -->
+        <div class="example-card" data-preset="preset-2-intersecting">
+          <div class="example-card-header">
+            <span class="example-badge badge-2">2 Eventos</span>
+            <span class="example-type">Intersecantes</span>
+          </div>
+          <h3 class="example-title">Estudiantes: Matemáticas e Inglés</h3>
+          <p class="example-desc">P(Mat)=0.60, P(Ing)=0.50, P(Mat∩Ing)=0.30. Calcular la unión, regiones y métricas condicionales.</p>
+          <div class="example-tags">
+            <span class="tag">P(A∩B) dado</span><span class="tag">Regla de adición</span>
+          </div>
+          <button class="example-load-btn">Cargar en Solucionador →</button>
+        </div>
+
+        <!-- 2 Eventos: Disjuntos -->
+        <div class="example-card" data-preset="preset-2-disjoint">
+          <div class="example-card-header">
+            <span class="example-badge badge-2">2 Eventos</span>
+            <span class="example-type">Mutuamente Excluyentes</span>
+          </div>
+          <h3 class="example-title">Lanzamiento de Dado: Par e Impar</h3>
+          <p class="example-desc">P(Par)=0.50, P(Impar)=0.50. Eventos disjuntos donde P(A∩B)=0 y P(A∪B)=P(A)+P(B).</p>
+          <div class="example-tags">
+            <span class="tag">Disjuntos</span><span class="tag">Axioma aditividad</span>
+          </div>
+          <button class="example-load-btn">Cargar en Solucionador →</button>
+        </div>
+
+        <!-- 2 Eventos: Deducción de intersección -->
+        <div class="example-card" data-preset="preset-2-union">
+          <div class="example-card-header">
+            <span class="example-badge badge-2">2 Eventos</span>
+            <span class="example-type">Deducción algebraica</span>
+          </div>
+          <h3 class="example-title">Despeje de Intersección desde la Unión</h3>
+          <p class="example-desc">P(A)=0.55, P(B)=0.45, P(A∪B)=0.80. El motor deduce P(A∩B) algebráicamente despejando de la fórmula de inclusión-exclusión.</p>
+          <div class="example-tags">
+            <span class="tag">Inclusión-Exclusión</span><span class="tag">Despeje</span>
+          </div>
+          <button class="example-load-btn">Cargar en Solucionador →</button>
+        </div>
+
+        <!-- 3 Eventos: Clásico -->
+        <div class="example-card" data-preset="preset-3-classic">
+          <div class="example-card-header">
+            <span class="example-badge badge-3">3 Eventos</span>
+            <span class="example-type">Intersección Triple</span>
+          </div>
+          <h3 class="example-title">Plataformas de Streaming (Netflix, Spotify, Prime)</h3>
+          <p class="example-desc">P(N)=0.50, P(S)=0.45, P(P)=0.35 con intersecciones dobles y triple conocidas. Calcula todas las 8 regiones de Venn.</p>
+          <div class="example-tags">
+            <span class="tag">P(A∩B∩C) dado</span><span class="tag">8 regiones</span>
+          </div>
+          <button class="example-load-btn">Cargar en Solucionador →</button>
+        </div>
+
+        <!-- 3 Eventos: Deducción triple -->
+        <div class="example-card" data-preset="preset-3-deduce">
+          <div class="example-card-header">
+            <span class="example-badge badge-3">3 Eventos</span>
+            <span class="example-type">Deducción de P(A∩B∩C)</span>
+          </div>
+          <h3 class="example-title">Idiomas: Español, Inglés y Francés</h3>
+          <p class="example-desc">Dada la unión total P(A∪B∪C)=0.80, se deduce P(A∩B∩C) mediante la fórmula de Poincaré de Inclusión-Exclusión.</p>
+          <div class="example-tags">
+            <span class="tag">P(Union) dado</span><span class="tag">Fórmula de Poincaré</span>
+          </div>
+          <button class="example-load-btn">Cargar en Solucionador →</button>
+        </div>
+
+        <!-- 3 Eventos: Conteos -->
+        <div class="example-card" data-preset="preset-3-counts">
+          <div class="example-card-header">
+            <span class="example-badge badge-3">3 Eventos</span>
+            <span class="example-type">Conteos / Frecuencias</span>
+          </div>
+          <h3 class="example-title">Encuesta de Deportes (200 personas)</h3>
+          <p class="example-desc">|S|=200 personas. Conteos de Fútbol=100, Baloncesto=80, Natación=70 con intersecciones medidas directamente en la encuesta.</p>
+          <div class="example-tags">
+            <span class="tag">Regla de Laplace</span><span class="tag">N=200</span>
+          </div>
+          <button class="example-load-btn">Cargar en Solucionador →</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════
+       TAB 4 — CALCULADORA CIENTÍFICA (Casio FX-350ES Plus)
+       ═══════════════════════════════════════════════════════════ -->
+  <div class="tab-panel" id="panel-calculator">
+    <div class="calculator-layout">
+      <div class="calc-wrapper">
+
+        <!-- Display LCD -->
+        <div class="calc-device">
+          <div class="calc-brand-bar">
+            <span class="calc-brand">CASIO</span>
+            <span class="calc-model">fx-350ES PLUS</span>
+          </div>
+
+          <div class="calc-display">
+            <div class="calc-display-inner">
+              <div class="calc-mode-row">
+                <span id="calc-mode-indicator">COMP</span>
+                <span id="calc-angle-mode">DEG</span>
+                <span id="calc-display-flags"></span>
+              </div>
+              <div class="calc-formula-row" id="calc-formula-display">0</div>
+              <div class="calc-result-row" id="calc-result-display"></div>
+            </div>
+          </div>
+
+          <!-- Keyboard -->
+          <div class="calc-keyboard">
+
+            <!-- Row 0: Function row -->
+            <div class="calc-row calc-row-fn">
+              <button class="calc-btn btn-fn" data-action="fn-mode" title="Modo">MODE</button>
+              <button class="calc-btn btn-fn" data-action="fn-shift" id="btn-shift">SHIFT</button>
+              <button class="calc-btn btn-fn" data-action="fn-alpha" id="btn-alpha">ALPHA</button>
+              <button class="calc-btn btn-fn" data-action="arrow-left">◄</button>
+              <button class="calc-btn btn-fn" data-action="arrow-right">►</button>
+              <button class="calc-btn btn-fn" data-action="toggle-angle">DEG</button>
+            </div>
+
+            <!-- Row 1 -->
+            <div class="calc-row">
+              <button class="calc-btn btn-yellow" data-action="calc-x2" data-shift="x3" data-alpha="">x²<br><small>x³</small></button>
+              <button class="calc-btn btn-yellow" data-action="calc-sqrt" data-shift="cbrt" data-alpha="">√<br><small>∛</small></button>
+              <button class="calc-btn btn-yellow" data-action="calc-pow" data-shift="xroot">x^y<br><small>x√y</small></button>
+              <button class="calc-btn btn-yellow" data-action="calc-log" data-shift="10x">log<br><small>10ˣ</small></button>
+              <button class="calc-btn btn-yellow" data-action="calc-ln" data-shift="ex">ln<br><small>eˣ</small></button>
+            </div>
+
+            <!-- Row 2: Trig -->
+            <div class="calc-row">
+              <button class="calc-btn btn-yellow" data-action="calc-sin" data-shift="asin">sin<br><small>sin⁻¹</small></button>
+              <button class="calc-btn btn-yellow" data-action="calc-cos" data-shift="acos">cos<br><small>cos⁻¹</small></button>
+              <button class="calc-btn btn-yellow" data-action="calc-tan" data-shift="atan">tan<br><small>tan⁻¹</small></button>
+              <button class="calc-btn btn-blue" data-action="paren-open">(</button>
+              <button class="calc-btn btn-blue" data-action="paren-close">)</button>
+            </div>
+
+            <!-- Row 3: Constants & ops -->
+            <div class="calc-row">
+              <button class="calc-btn btn-yellow" data-action="insert-S2F" data-shift="dec-frac">S↔D<br><small>a↔b/c</small></button>
+              <button class="calc-btn btn-blue" data-action="calc-nPr">nPr</button>
+              <button class="calc-btn btn-blue" data-action="calc-nCr">nCr</button>
+              <button class="calc-btn btn-blue" data-action="calc-percent">%</button>
+              <button class="calc-btn btn-blue" data-action="insert-pi">π</button>
+            </div>
+
+            <!-- Row 4: Memory & hyp -->
+            <div class="calc-row">
+              <button class="calc-btn btn-green" data-action="mem-rcl">RCL</button>
+              <button class="calc-btn btn-green" data-action="mem-sto">STO</button>
+              <button class="calc-btn btn-yellow" data-action="calc-hyp-sin" data-shift="hyp-asin">sinh<br><small>sinh⁻¹</small></button>
+              <button class="calc-btn btn-yellow" data-action="calc-hyp-cos" data-shift="hyp-acos">cosh<br><small>cosh⁻¹</small></button>
+              <button class="calc-btn btn-yellow" data-action="calc-hyp-tan" data-shift="hyp-atan">tanh<br><small>tanh⁻¹</small></button>
+            </div>
+
+            <!-- Row 5: Numbers 7-8-9 DEL AC -->
+            <div class="calc-row">
+              <button class="calc-btn btn-num" data-action="digit" data-val="7">7</button>
+              <button class="calc-btn btn-num" data-action="digit" data-val="8">8</button>
+              <button class="calc-btn btn-num" data-action="digit" data-val="9">9</button>
+              <button class="calc-btn btn-del" data-action="del">DEL</button>
+              <button class="calc-btn btn-ac"  data-action="ac">AC</button>
+            </div>
+
+            <!-- Row 6: 4-5-6 × ÷ -->
+            <div class="calc-row">
+              <button class="calc-btn btn-num" data-action="digit" data-val="4">4</button>
+              <button class="calc-btn btn-num" data-action="digit" data-val="5">5</button>
+              <button class="calc-btn btn-num" data-action="digit" data-val="6">6</button>
+              <button class="calc-btn btn-op"  data-action="op" data-val="×">×</button>
+              <button class="calc-btn btn-op"  data-action="op" data-val="÷">÷</button>
+            </div>
+
+            <!-- Row 7: 1-2-3 + - -->
+            <div class="calc-row">
+              <button class="calc-btn btn-num" data-action="digit" data-val="1">1</button>
+              <button class="calc-btn btn-num" data-action="digit" data-val="2">2</button>
+              <button class="calc-btn btn-num" data-action="digit" data-val="3">3</button>
+              <button class="calc-btn btn-op"  data-action="op" data-val="+">+</button>
+              <button class="calc-btn btn-op"  data-action="op" data-val="−">−</button>
+            </div>
+
+            <!-- Row 8: 0 . EXP Ans = -->
+            <div class="calc-row">
+              <button class="calc-btn btn-num btn-wide" data-action="digit" data-val="0">0</button>
+              <button class="calc-btn btn-num" data-action="dot">.</button>
+              <button class="calc-btn btn-blue" data-action="insert-exp">×10ˣ</button>
+              <button class="calc-btn btn-green" data-action="ans">ANS</button>
+              <button class="calc-btn btn-equals" data-action="equals">=</button>
+            </div>
+
+          </div><!-- /calc-keyboard -->
+
+          <!-- Memory display -->
+          <div class="calc-memory-row">
+            <div class="memory-slot" id="mem-slot">
+              <span class="mem-label">M =</span>
+              <span class="mem-value" id="mem-display">0</span>
+            </div>
+            <div class="calc-hint-row">
+              <small>Amarillo = SHIFT · Azul = funciones · Verde = memoria</small>
+            </div>
+          </div>
+        </div><!-- /calc-device -->
+
+        <!-- History panel -->
+        <div class="calc-history">
+          <div class="history-header">
+            <h3 class="history-title">Historial de Cálculos</h3>
+            <button class="btn-icon-subtle" id="btn-clear-history">Limpiar</button>
+          </div>
+          <div id="calc-history-list" class="history-list">
+            <p class="history-empty">Aún no hay cálculos registrados.</p>
           </div>
         </div>
       </div>
+    </div>
+  </div>
 
-      <!-- Panel de Resolución Matemática Paso a Paso -->
-      <div class="steps-section-card">
-        <div class="steps-header-bar">
-          <div class="steps-header-left">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
-            <h2 class="steps-card-title">Demostración y Resolución Paso a Paso</h2>
-          </div>
-          <span class="steps-count-badge" id="steps-count-badge">0 Pasos</span>
-        </div>
-
-        <div id="steps-container" class="steps-list">
-          <!-- Inyectado dinámicamente con KaTeX -->
-        </div>
-      </div>
-
-      <!-- Tabla de Probabilidades y Métricas Condicionales -->
-      <div class="metrics-section-card">
-        <h3 class="metrics-title">Tabla Completa de Métricas y Probabilidades</h3>
-        <div class="table-responsive">
-          <table class="metrics-table" id="metrics-table">
-            <thead>
-              <tr>
-                <th>Notación Simbólica</th>
-                <th>Probabilidad P(E)</th>
-                <th>Porcentaje %</th>
-                <th>Conteo Estimado (|E|)</th>
-                <th>Significado Probabilístico</th>
-              </tr>
-            </thead>
-            <tbody id="metrics-table-body">
-              <!-- Inyectado dinámicamente -->
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-    </section>
-
-  </main>
-
-  <!-- Footer -->
+  <!-- ── FOOTER ── -->
   <footer class="app-footer">
     <div class="footer-container">
-      <p>VennProb &copy; 2026 &bull; Desarrollado con Python, Flask, D3.js, Venn.js y KaTeX.</p>
-      <div class="footer-links">
-        <span class="status-indicator-mini"><span class="pulse-mini"></span> Backend REST API Activo</span>
-      </div>
+      <p>VennProb v2.0 © 2026 · Python · Flask · D3.js · Venn.js · KaTeX</p>
+      <span class="status-indicator-mini"><span class="pulse-mini"></span>API REST Activa</span>
     </div>
   </footer>
 
-  <!-- Scripts -->
   <script src="app.js"></script>
 </body>
 </html>
