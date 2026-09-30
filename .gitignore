@@ -1,0 +1,21 @@
+﻿# __pycache__ y bytecode compilado
+__pycache__/
+*.py[cod]
+*.class
+
+# Entornos virtuales
+venv/
+.venv/
+env/
+ENV/
+
+# IDEs y editores
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs y temporales
+*.log
+scratch/
+.DS_Store

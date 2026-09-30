@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VennProb | Solucionador Experto de Probabilidad y Conjuntos</title>
+  <meta name="description" content="Aplicación interactiva para resolver problemas de probabilidad y teoría de conjuntos (2 y 3 eventos), con demostración matemática paso a paso y diagramas de Venn dinámicos.">
+  
+  <!-- Google Fonts: Outfit & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- KaTeX para renderizado de fórmulas matemáticas -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
+
+  <!-- D3.js v4 y Venn.js -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/4.13.0/d3.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/venn.js/0.2.20/venn.min.js"></script>
+
+  <!-- Estilos de la aplicación -->
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- Fondo con efectos lumínicos -->
+  <div class="ambient-glow glow-1"></div>
+  <div class="ambient-glow glow-2"></div>
+  <div class="ambient-glow glow-3"></div>
+
+  <!-- Header principal -->
+  <header class="app-header">
+    <div class="header-container">
+      <div class="brand">
+        <div class="brand-icon">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="9" cy="12" r="6" stroke="rgba(99, 102, 241, 0.9)" fill="rgba(99, 102, 241, 0.25)"></circle>
+            <circle cx="15" cy="12" r="6" stroke="rgba(244, 63, 94, 0.9)" fill="rgba(244, 63, 94, 0.25)"></circle>
+          </svg>
+        </div>
+        <div>
+          <h1 class="brand-title">VennProb <span class="badge-tag">Inferential Engine</span></h1>
+          <p class="brand-subtitle">Automatización de Probabilidades, Axiomas de Kolmogorov y Diagramas de Venn</p>
+        </div>
+      </div>
+      
+      <div class="header-actions">
+        <div class="api-status-pill" id="api-status-indicator">
+          <span class="status-dot"></span>
+          <span id="api-status-text">Conectando al Motor...</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Contenedor Principal -->
+  <main class="main-layout">
+    
+    <!-- Panel Izquierdo: Configuración e Inputs -->
+    <section class="panel panel-input" aria-label="Configuración de Datos">
+      
+      <!-- Selector de Modo de Eventos: 2 vs 3 -->
+      <div class="section-card">
+        <label class="control-label">Número de Eventos</label>
+        <div class="segmented-control" role="tablist">
+          <button type="button" class="segment-btn active" id="btn-mode-2" role="tab" aria-selected="true">
+            <span class="segment-icon">2</span>
+            <span>2 Eventos (A, B)</span>
+          </button>
+          <button type="button" class="segment-btn" id="btn-mode-3" role="tab" aria-selected="false">
+            <span class="segment-icon">3</span>
+            <span>3 Eventos (A, B, C)</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Selector de Formato de Entrada: Probabilidades vs Conteos -->
+      <div class="section-card">
+        <div class="card-header-row">
+          <label class="control-label">Unidad de Entrada</label>
+          <div class="radio-pill-group">
+            <label class="radio-pill">
+              <input type="radio" name="input_mode" value="probabilities" id="mode-prob" checked>
+              <span>Probabilidad [0 a 1]</span>
+            </label>
+            <label class="radio-pill">
+              <input type="radio" name="input_mode" value="counts" id="mode-counts">
+              <span>Conteos / Frecuencias (|E|, |S|)</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Presets de Ejemplo -->
+        <div class="presets-row">
+          <span class="presets-label">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
+            Ejemplos:
+          </span>
+          <select id="example-presets-select" class="presets-select">
+            <option value="">Seleccionar problema predeterminado...</option>
+            <option value="preset-2-intersecting">2 Eventos: Estudiantes (Matemáticas e Inglés)</option>
+            <option value="preset-2-disjoint">2 Eventos: Dados (Número Par e Impar - Disjuntos)</option>
+            <option value="preset-2-union">2 Eventos: Despeje de Intersección a partir de Unión</option>
+            <option value="preset-3-classic">3 Eventos: Plataformas Streaming (Netflix, Spotify, Prime)</option>
+            <option value="preset-3-deduce">3 Eventos: Deducción de Intersección Triple P(A∩B∩C)</option>
+            <option value="preset-3-counts">3 Eventos con Conteos: Encuesta de 200 personas</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Formulario de Entrada Dinámico -->
+      <form id="prob-form" class="data-form" novalidate>
+        
+        <!-- Campo Espacio Muestral (visible solo en modo conteos) -->
+        <div id="sample-space-container" class="form-group-special hidden">
+          <div class="input-header">
+            <label for="input-sample-space">Tamaño del Espacio Muestral (|S|)</label>
+            <span class="hint-tag">Población total N</span>
+          </div>
+          <div class="input-wrapper">
+            <span class="input-prefix">|S| =</span>
+            <input type="number" id="input-sample-space" name="sample_space" value="100" min="1" step="1" placeholder="Ej: 100">
+          </div>
+        </div>
+
+        <!-- Nombres y Tamaños de Eventos Individuales -->
+        <div class="section-card">
+          <h3 class="section-title">Eventos Principales</h3>
+          <div class="events-grid">
+            
+            <!-- Evento A -->
+            <div class="event-input-box event-a-theme">
+              <div class="event-tag">
+                <span class="event-color-dot dot-a"></span>
+                <input type="text" id="name-a" name="name_a" value="Evento A" class="event-name-input" title="Nombre de A">
+              </div>
+              <div class="input-wrapper">
+                <span class="input-prefix prefix-a" id="prefix-a">P(A) =</span>
+                <input type="number" id="val-a" name="val_a" value="0.6" step="any" required placeholder="0.60">
+              </div>
+            </div>
+
+            <!-- Evento B -->
+            <div class="event-input-box event-b-theme">
+              <div class="event-tag">
+                <span class="event-color-dot dot-b"></span>
+                <input type="text" id="name-b" name="name_b" value="Evento B" class="event-name-input" title="Nombre de B">
+              </div>
+              <div class="input-wrapper">
+                <span class="input-prefix prefix-b" id="prefix-b">P(B) =</span>
+                <input type="number" id="val-b" name="val_b" value="0.5" step="any" required placeholder="0.50">
+              </div>
+            </div>
+
+            <!-- Evento C (Solo en modo 3 eventos) -->
+            <div class="event-input-box event-c-theme hidden" id="box-event-c">
+              <div class="event-tag">
+                <span class="event-color-dot dot-c"></span>
+                <input type="text" id="name-c" name="name_c" value="Evento C" class="event-name-input" title="Nombre de C">
+              </div>
+              <div class="input-wrapper">
+                <span class="input-prefix prefix-c" id="prefix-c">P(C) =</span>
+                <input type="number" id="val-c" name="val_c" value="0.4" step="any" placeholder="0.40">
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- Sección de Relaciones para 2 Eventos -->
+        <div id="section-rel-2" class="section-card">
+          <div class="card-header-row">
+            <h3 class="section-title">Relación entre A y B</h3>
+            <label class="toggle-switch-label" title="Activa si los eventos no pueden ocurrir al mismo tiempo">
+              <input type="checkbox" id="check-disjoint" name="is_disjoint">
+              <span class="switch-ui"></span>
+              <span class="switch-text">¿Eventos Disjuntos?</span>
+            </label>
+          </div>
+
+          <div id="disjoint-hint" class="info-alert hidden">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+            <span>Al ser disjuntos: <strong>P(A ∩ B) = 0</strong> y <strong>P(A ∪ B) = P(A) + P(B)</strong>.</span>
+          </div>
+
+          <div id="container-2-inter-union" class="dual-input-row">
+            <div class="input-group">
+              <div class="input-header">
+                <label for="val-ab" id="label-ab">Intersección P(A ∩ B)</label>
+                <span class="badge-sub">Ambos</span>
+              </div>
+              <div class="input-wrapper">
+                <span class="input-prefix" id="prefix-ab">∩ =</span>
+                <input type="number" id="val-ab" name="val_ab" value="0.3" step="any" placeholder="0.30">
+              </div>
+            </div>
+
+            <div class="input-group">
+              <div class="input-header">
+                <label for="val-union-ab" id="label-union-ab">O Unión P(A ∪ B)</label>
+                <span class="badge-sub">Opcional</span>
+              </div>
+              <div class="input-wrapper">
+                <span class="input-prefix" id="prefix-union-ab">∪ =</span>
+                <input type="number" id="val-union-ab" name="val_union_ab" step="any" placeholder="Auto-calculada">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Sección de Relaciones para 3 Eventos -->
+        <div id="section-rel-3" class="section-card hidden">
+          <h3 class="section-title">Intersecciones Dobles (Pares)</h3>
+          <div class="pairs-grid">
+            <div class="input-group">
+              <label for="val-3-ab" id="label-3-ab">P(A ∩ B)</label>
+              <div class="input-wrapper">
+                <span class="input-prefix">A∩B</span>
+                <input type="number" id="val-3-ab" name="val_3_ab" value="0.20" step="any" placeholder="0.20">
+              </div>
+            </div>
+            <div class="input-group">
+              <label for="val-3-ac" id="label-3-ac">P(A ∩ C)</label>
+              <div class="input-wrapper">
+                <span class="input-prefix">A∩C</span>
+                <input type="number" id="val-3-ac" name="val_3_ac" value="0.15" step="any" placeholder="0.15">
+              </div>
+            </div>
+            <div class="input-group">
+              <label for="val-3-bc" id="label-3-bc">P(B ∩ C)</label>
+              <div class="input-wrapper">
+                <span class="input-prefix">B∩C</span>
+                <input type="number" id="val-3-bc" name="val_3_bc" value="0.12" step="any" placeholder="0.12">
+              </div>
+            </div>
+          </div>
+
+          <h3 class="section-title mt-4">Intersección Triple vs Unión Total</h3>
+          <p class="section-desc">Ingresa <strong>P(A ∩ B ∩ C)</strong> o bien la <strong>Unión Total P(A ∪ B ∪ C)</strong> para que el motor deduzca la otra.</p>
+          
+          <div class="dual-input-row">
+            <div class="input-group">
+              <div class="input-header">
+                <label for="val-3-abc" id="label-3-abc">Intersección P(A ∩ B ∩ C)</label>
+                <span class="badge-sub">Los 3</span>
+              </div>
+              <div class="input-wrapper">
+                <span class="input-prefix">∩ ∩</span>
+                <input type="number" id="val-3-abc" name="val_3_abc" value="0.05" step="any" placeholder="0.05">
+              </div>
+            </div>
+
+            <div class="input-group">
+              <div class="input-header">
+                <label for="val-3-union" id="label-3-union">Unión Total P(A ∪ B ∪ C)</label>
+                <span class="badge-sub">Opcional</span>
+              </div>
+              <div class="input-wrapper">
+                <span class="input-prefix">∪ ∪</span>
+                <input type="number" id="val-3-union" name="val_3_union" step="any" placeholder="Auto-calculada">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Botones de Acción -->
+        <div class="form-actions">
+          <button type="submit" id="btn-calculate" class="btn btn-primary">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+            <span>Resolver y Generar Diagrama de Venn</span>
+          </button>
+          <button type="button" id="btn-reset" class="btn btn-secondary" title="Restablecer valores">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+          </button>
+        </div>
+
+      </form>
+
+      <!-- Banner de Error Axiomático (Kolmogorov) -->
+      <div id="axiom-error-banner" class="axiom-banner hidden" role="alert">
+        <div class="axiom-banner-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        </div>
+        <div class="axiom-banner-content">
+          <h4 class="axiom-banner-title" id="axiom-error-title">Inconsistencia Axiomática Detectada</h4>
+          <p class="axiom-banner-desc" id="axiom-error-message"></p>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- Panel Derecho: Visualización y Resolución Paso a Paso -->
+    <section class="panel panel-results" aria-label="Resultados y Visualización">
+      
+      <!-- Banner de Tipología de Eventos -->
+      <div id="typology-card" class="typology-card">
+        <div class="typology-header">
+          <span class="typology-badge" id="typology-badge">Cargando análisis...</span>
+          <span class="typology-events-count" id="typology-events-count">2 Eventos</span>
+        </div>
+        <p class="typology-description" id="typology-description">
+          Ingresa los datos del problema o selecciona un ejemplo predefinido para comenzar el cálculo probabilístico.
+        </p>
+      </div>
+
+      <!-- Contenedor del Diagrama de Venn -->
+      <div class="venn-section-card">
+        <div class="venn-header-bar">
+          <div class="venn-header-left">
+            <h2 class="venn-card-title">Diagrama de Venn Dinámico</h2>
+            <span class="venn-engine-tag">Motor D3.js + Venn.js</span>
+          </div>
+          <div class="venn-actions">
+            <button type="button" id="btn-download-svg" class="btn-icon-subtle" title="Exportar Diagrama como SVG">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              <span>SVG</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="venn-diagram-wrapper">
+          <div id="venn-diagram" class="venn-container"></div>
+          <!-- Tooltip flotante interactivo para Venn -->
+          <div id="venn-tooltip" class="venn-tooltip"></div>
+        </div>
+
+        <!-- Métricas Rápidas / Resumen de Regiones Mutuamente Excluyentes -->
+        <div class="regions-summary-container">
+          <h3 class="regions-title">Partición Disjunta del Espacio Muestral (Axioma de Aditividad)</h3>
+          <div id="regions-grid" class="regions-grid">
+            <!-- Inyectado dinámicamente -->
+          </div>
+        </div>
+      </div>
+
+      <!-- Panel de Resolución Matemática Paso a Paso -->
+      <div class="steps-section-card">
+        <div class="steps-header-bar">
+          <div class="steps-header-left">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+            <h2 class="steps-card-title">Demostración y Resolución Paso a Paso</h2>
+          </div>
+          <span class="steps-count-badge" id="steps-count-badge">0 Pasos</span>
+        </div>
+
+        <div id="steps-container" class="steps-list">
+          <!-- Inyectado dinámicamente con KaTeX -->
+        </div>
+      </div>
+
+      <!-- Tabla de Probabilidades y Métricas Condicionales -->
+      <div class="metrics-section-card">
+        <h3 class="metrics-title">Tabla Completa de Métricas y Probabilidades</h3>
+        <div class="table-responsive">
+          <table class="metrics-table" id="metrics-table">
+            <thead>
+              <tr>
+                <th>Notación Simbólica</th>
+                <th>Probabilidad P(E)</th>
+                <th>Porcentaje %</th>
+                <th>Conteo Estimado (|E|)</th>
+                <th>Significado Probabilístico</th>
+              </tr>
+            </thead>
+            <tbody id="metrics-table-body">
+              <!-- Inyectado dinámicamente -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="app-footer">
+    <div class="footer-container">
+      <p>VennProb &copy; 2026 &bull; Desarrollado con Python, Flask, D3.js, Venn.js y KaTeX.</p>
+      <div class="footer-links">
+        <span class="status-indicator-mini"><span class="pulse-mini"></span> Backend REST API Activo</span>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="app.js"></script>
+</body>
+</html>
