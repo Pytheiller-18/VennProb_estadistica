@@ -192,11 +192,64 @@ input[type=number]{-moz-appearance:textfield}
 .venn-diagram-wrapper{position:relative;background:radial-gradient(circle at center,rgba(15,23,42,.95),rgba(8,12,22,.98));border:1px solid var(--border-sub);border-radius:var(--r-lg);min-height:400px;display:flex;align-items:center;justify-content:center;overflow:hidden}
 .venn-container{width:100%;height:420px;display:flex;align-items:center;justify-content:center}
 .venn-placeholder{display:flex;flex-direction:column;align-items:center;gap:.75rem;color:var(--txt-d);text-align:center;padding:2rem;font-size:.85rem}
-/* Venn.js SVG overrides */
+/* Venn.js SVG overrides & in-graph data labels */
 .venn-container svg{display:block;margin:0 auto;overflow:visible}
-.venn-area path{fill-opacity:.38!important;stroke:rgba(255,255,255,.25)!important;stroke-width:2px!important;cursor:pointer;transition:fill-opacity .2s,stroke-width .2s}
-.venn-area:hover path{fill-opacity:.7!important;stroke:#fff!important;stroke-width:3px!important;filter:drop-shadow(0 0 10px rgba(99,102,241,.5))}
-.venn-area text{fill:#f8fafc!important;font-family:var(--ff)!important;font-size:13px!important;font-weight:700!important}
+.venn-area path{fill-opacity:.42!important;stroke:rgba(255,255,255,.3)!important;stroke-width:2px!important;cursor:pointer;transition:fill-opacity .2s,stroke-width .2s}
+.venn-area:hover path{fill-opacity:.75!important;stroke:#fff!important;stroke-width:3px!important;filter:drop-shadow(0 0 12px rgba(99,102,241,.6))}
+.venn-area text{
+  fill:#f8fafc!important;
+  font-family:var(--ff)!important;
+  text-anchor:middle;
+  pointer-events:none;
+}
+.venn-text-title{
+  font-weight:700;
+  font-size:12px;
+  fill:#ffffff;
+  paint-order:stroke fill;
+  stroke:rgba(10,15,30,.92);
+  stroke-width:3px;
+  stroke-linejoin:round;
+}
+.venn-text-val{
+  font-family:var(--mono);
+  font-size:11.5px;
+  font-weight:700;
+  fill:#a5f3fc;
+  paint-order:stroke fill;
+  stroke:rgba(10,15,30,.92);
+  stroke-width:3px;
+  stroke-linejoin:round;
+}
+.venn-text-sub{
+  font-family:var(--mono);
+  font-size:9.5px;
+  font-weight:500;
+  fill:#cbd5e1;
+  paint-order:stroke fill;
+  stroke:rgba(10,15,30,.92);
+  stroke-width:2.5px;
+  stroke-linejoin:round;
+}
+.venn-universe-corner{
+  pointer-events:none;
+}
+.venn-universe-bg{
+  fill:rgba(15,23,42,.88);
+  stroke:rgba(255,255,255,.18);
+  stroke-width:1px;
+  rx:8px;
+}
+.venn-universe-text{
+  font-family:var(--mono);
+  font-size:10.5px;
+  font-weight:600;
+  fill:#cbd5e1;
+}
+.venn-universe-highlight{
+  font-weight:700;
+  fill:#f59e0b;
+}
 .venn-tooltip{position:absolute;z-index:100;pointer-events:none;background:rgba(15,23,42,.92);border:1px solid rgba(255,255,255,.14);backdrop-filter:blur(12px);padding:.7rem .9rem;border-radius:var(--r-md);box-shadow:0 8px 30px rgba(0,0,0,.6);opacity:0;transform:translate(-50%,-115%);transition:opacity .15s;min-width:170px}
 .venn-tooltip.visible{opacity:1}
 .venn-tooltip-title{font-size:.85rem;font-weight:700;color:#fff;margin-bottom:.25rem}
@@ -289,8 +342,51 @@ input[type=number]{-moz-appearance:textfield}
 .calc-display-inner{position:relative;z-index:1}
 .calc-mode-row{display:flex;gap:.6rem;align-items:center;margin-bottom:.2rem}
 .calc-mode-row span{font-family:var(--mono);font-size:.6rem;color:rgba(0,40,0,.7);background:rgba(0,40,0,.15);padding:.05rem .25rem;border-radius:2px;font-weight:600}
-.calc-formula-row{font-family:var(--mono);font-size:1.05rem;font-weight:600;color:#0a2200;text-align:right;min-height:1.4rem;word-break:break-all;line-height:1.3}
-.calc-result-row{font-family:var(--mono);font-size:.8rem;color:rgba(0,40,0,.6);text-align:right;min-height:1.1rem;margin-top:.15rem}
+.calc-formula-row{font-family:var(--mono);font-size:1.05rem;font-weight:600;color:#0a2200;text-align:right;min-height:1.4rem;word-break:break-all;line-height:1.3;display:flex;align-items:center;justify-content:flex-end;flex-wrap:wrap;gap:1px}
+.calc-result-row{font-family:var(--mono);font-size:.85rem;color:rgba(0,40,0,.75);text-align:right;min-height:1.25rem;margin-top:.15rem;font-weight:600;display:flex;align-items:center;justify-content:flex-end}
+
+/* Casio LCD Text Cursor */
+.calc-cursor{
+  display:inline-block;
+  width:2px;
+  height:1.15em;
+  background-color:#0a2200;
+  vertical-align:text-bottom;
+  margin:0 1px;
+  animation:casio-blink .85s steps(1) infinite;
+}
+@keyframes casio-blink{
+  0%,100%{opacity:1}
+  50%{opacity:0}
+}
+
+/* Casio Stacked Fraction in LCD */
+.casio-fraction{
+  display:inline-flex;
+  flex-direction:column;
+  align-items:center;
+  vertical-align:middle;
+  margin:0 4px;
+  font-size:.82em;
+  line-height:1;
+  font-family:var(--mono);
+}
+.casio-fraction .c-num{
+  padding:0 3px;
+  font-weight:700;
+  color:#0a2200;
+}
+.casio-fraction .c-bar{
+  width:100%;
+  height:1.5px;
+  background:#0a2200;
+  margin:1px 0;
+}
+.casio-fraction .c-den{
+  padding:0 3px;
+  font-weight:700;
+  color:#0a2200;
+}
 
 /* Keyboard */
 .calc-keyboard{display:flex;flex-direction:column;gap:.35rem}
@@ -311,6 +407,10 @@ input[type=number]{-moz-appearance:textfield}
 .btn-fn  {background:linear-gradient(160deg,#3a3e55,#2e3248);color:#a0a8c0;font-size:.65rem}
 .btn-yellow{background:linear-gradient(160deg,#4a3f1a,#3a3010);color:#d4b64a;font-size:.65rem;text-align:center}
 .btn-yellow small{display:block;font-size:.55rem;color:#8a7a30;font-weight:500}
+.btn-frac  {background:linear-gradient(160deg,#2b334a,#1e2436);color:#e2e8f0;font-size:.68rem;text-align:center}
+.btn-frac small{display:block;font-size:.52rem;color:#94a3b8;font-weight:500}
+.frac-icon {display:inline-flex;flex-direction:column;align-items:center;line-height:.85;font-weight:700;font-size:.68rem}
+.frac-icon .f-bar{width:10px;height:1.5px;background:currentColor;margin:1px 0}
 .btn-blue  {background:linear-gradient(160deg,#1e2f5a,#172347);color:#7090e0}
 .btn-green {background:linear-gradient(160deg,#1a3a22,#122b18);color:#4fbd6a}
 .btn-num   {background:linear-gradient(160deg,#3c4060,#2e3250);color:#d8dcf8;font-size:.88rem}

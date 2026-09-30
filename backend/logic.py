@@ -121,6 +121,7 @@ def solve_one_event(data: Dict[str, Any]) -> Dict[str, Any]:
             f"Odds a favor": odds_fav,
             f"Odds en contra": odds_con
         },
+        "names": {"A": name_a},
         "regions": {},
         "venn_data": []
     }
@@ -385,6 +386,7 @@ def solve_two_events(data: Dict[str, Any]) -> Dict[str, Any]:
             f"P({name_a}^c)": p_not_a,
             f"P({name_b}^c)": p_not_b
         },
+        "names": {"A": name_a, "B": name_b},
         "regions": regions,
         "venn_data": venn_data
     }
@@ -689,6 +691,7 @@ def solve_three_events(data: Dict[str, Any]) -> Dict[str, Any]:
             f"P({name_a} ∩ {name_b} ∩ {name_c})": p_abc,
             f"P({name_a} ∪ {name_b} ∪ {name_c})": p_union
         },
+        "names": {"A": name_a, "B": name_b, "C": name_c},
         "regions": regions,
         "venn_data": venn_data
     }

@@ -351,12 +351,95 @@ function renderOneEvent(data) {
   document.getElementById("typology-description").textContent  = data.typology_description;
   renderSteps(data.steps);
   renderMetricsTable(data);
-  document.getElementById("venn-diagram").innerHTML = `
-    <div style="text-align:center;padding:2.5rem;color:var(--txt-m)">
-      <div style="font-size:3rem;margin-bottom:.5rem">⭕</div>
-      <div style="font-family:var(--mono);font-size:1.1rem;color:#c7d2fe">P(A) = ${data.probabilities["P(A)"].toFixed(4)}</div>
-      <div style="font-size:.85rem;margin-top:.4rem">P(Aᶜ) = ${data.probabilities["P(Aᶜ)"].toFixed(4)}</div>
-    </div>`;
+
+  const container = document.getElementById("venn-diagram");
+  container.innerHTML = "";
+  const w = Math.min(container.clientWidth || 520, 560);
+  const h = 380;
+  const pA = data.probabilities["P(A)"] || 0;
+  const pNotA = data.probabilities["P(Aᶜ)"] !== undefined ? data.probabilities["P(Aᶜ)"] : (1 - pA);
+  const nameA = (data.names && data.names.A) || "Evento A";
+  const isCounts = data.input_mode === "counts";
+  const sp = data.sample_space_size || 100;
+  const cntA = isCounts ? (data.count_a !== undefined ? data.count_a : Math.round(pA * sp)) : Math.round(pA * sp);
+  const cntNotA = sp - cntA;
+
+  const svg = d3.select(container).append("svg")
+    .attr("width", w)
+    .attr("height", h)
+    .style("display", "block")
+    .style("margin", "0 auto");
+
+  // Universal set frame
+  svg.append("rect")
+    .attr("x", 12).attr("y", 12)
+    .attr("width", w - 24).attr("height", h - 24)
+    .attr("rx", 14)
+    .attr("fill", "rgba(15,23,42,0.4)")
+    .attr("stroke", "rgba(255,255,255,0.15)")
+    .attr("stroke-width", 1.5);
+
+  // U symbol (Espacio Muestral)
+  svg.append("text")
+    .attr("x", 26).attr("y", 38)
+    .attr("class", "venn-universe-text")
+    .html(`<tspan class="venn-universe-highlight">𝕌</tspan> (Espacio Muestral${isCounts ? ` | N=${sp}` : ''})`);
+
+  // Circle A
+  const cx = w / 2;
+  const cy = h / 2 + 10;
+  const r = Math.min(w, h) * 0.32;
+
+  const circleG = svg.append("g");
+  circleG.append("circle")
+    .attr("cx", cx).attr("cy", cy).attr("r", r)
+    .attr("fill", "#6366f1")
+    .attr("fill-opacity", 0.45)
+    .attr("stroke", "#6366f1")
+    .attr("stroke-width", 2.5);
+
+  // Text inside circle A
+  const textA = circleG.append("text")
+    .attr("class", "label")
+    .attr("x", cx).attr("y", cy)
+    .attr("text-anchor", "middle");
+
+  textA.append("tspan")
+    .attr("class", "venn-text-title")
+    .attr("x", cx).attr("y", cy)
+    .attr("dy", "-0.7em")
+    .style("font-size", "14px")
+    .text(nameA);
+
+  textA.append("tspan")
+    .attr("class", "venn-text-val")
+    .attr("x", cx).attr("y", cy)
+    .attr("dy", "0.75em")
+    .style("font-size", "13px")
+    .text(isCounts ? `n = ${cntA}` : `P(${nameA}) = ${pA.toFixed(4)}`);
+
+  textA.append("tspan")
+    .attr("class", "venn-text-sub")
+    .attr("x", cx).attr("y", cy)
+    .attr("dy", "2.1em")
+    .text(`${(pA * 100).toFixed(2)}%`);
+
+  // Exterior badge (Complement A^c)
+  const extBox = svg.append("g").attr("transform", `translate(${w - 235}, 20)`);
+  extBox.append("rect")
+    .attr("width", 215).attr("height", 44)
+    .attr("class", "venn-universe-bg");
+  extBox.append("text")
+    .attr("x", 12).attr("y", 18)
+    .attr("class", "venn-universe-text")
+    .text(`Complemento: `)
+    .append("tspan").attr("class", "venn-universe-highlight")
+    .text(isCounts ? `n = ${cntNotA}` : `P(${nameA}ᶜ) = ${pNotA.toFixed(4)}`);
+  extBox.append("text")
+    .attr("x", 12).attr("y", 34)
+    .attr("class", "venn-text-sub")
+    .text(`Exterior: ${(pNotA * 100).toFixed(2)}% del total`);
+
   document.getElementById("regions-grid").innerHTML = "";
 }
 
@@ -389,8 +472,11 @@ function renderVennDiagram(containerId, tooltipId, vennData, data) {
     .style("stroke", "rgba(255,255,255,.35)")
     .style("stroke-width", "1.5px");
 
+  // In-graph representation of data inside the Venn regions!
+  formatSolverVennLabels(div, data);
+
   const tooltip = document.getElementById(tooltipId);
-  div.selectAll("g")
+  div.selectAll("g.venn-area")
     .on("mouseover", function(d) {
       venn.sortAreas(div, d);
       d3.select(this).select("path")
@@ -421,6 +507,142 @@ function renderVennDiagram(containerId, tooltipId, vennData, data) {
         .style("stroke-width", d => d.sets.length > 1 ? "1.5px" : "2px")
         .style("stroke", d => d.sets.length > 1 ? "rgba(255,255,255,.35)" : null);
     });
+}
+
+function formatSolverVennLabels(div, data) {
+  if (!data || !data.regions) return;
+  const isCounts  = data.input_mode === "counts";
+  const numEvents = data.num_events;
+  const names     = data.names || {};
+  const nameA     = names.A || "A";
+  const nameB     = names.B || "B";
+  const nameC     = names.C || "C";
+
+  function getRegionInfo(dSets) {
+    if (numEvents === 2) {
+      if (dSets.length === 1) {
+        if (dSets[0] === nameA) {
+          const r = data.regions.only_a;
+          return { title: `Solo ${nameA}`, valStr: isCounts ? `n = ${r.count}` : `P = ${r.prob.toFixed(4)}`, pctStr: r.percentage };
+        } else if (dSets[0] === nameB) {
+          const r = data.regions.only_b;
+          return { title: `Solo ${nameB}`, valStr: isCounts ? `n = ${r.count}` : `P = ${r.prob.toFixed(4)}`, pctStr: r.percentage };
+        }
+      } else if (dSets.length === 2) {
+        const r = data.regions.intersection_ab;
+        return { title: `${nameA} ∩ ${nameB}`, valStr: isCounts ? `n = ${r.count}` : `P = ${r.prob.toFixed(4)}`, pctStr: r.percentage };
+      }
+    } else if (numEvents === 3) {
+      if (dSets.length === 1) {
+        if (dSets[0] === nameA) {
+          const r = data.regions.only_a;
+          return { title: `Solo ${nameA}`, valStr: isCounts ? `n=${r.count}` : `P=${r.prob.toFixed(4)}`, pctStr: r.percentage };
+        } else if (dSets[0] === nameB) {
+          const r = data.regions.only_b;
+          return { title: `Solo ${nameB}`, valStr: isCounts ? `n=${r.count}` : `P=${r.prob.toFixed(4)}`, pctStr: r.percentage };
+        } else if (dSets[0] === nameC) {
+          const r = data.regions.only_c;
+          return { title: `Solo ${nameC}`, valStr: isCounts ? `n=${r.count}` : `P=${r.prob.toFixed(4)}`, pctStr: r.percentage };
+        }
+      } else if (dSets.length === 2) {
+        const hasA = dSets.includes(nameA), hasB = dSets.includes(nameB), hasC = dSets.includes(nameC);
+        if (hasA && hasB) {
+          const r = data.regions.only_ab;
+          return { title: `${nameA}∩${nameB}`, valStr: isCounts ? `n=${r.count}` : `P=${r.prob.toFixed(4)}`, pctStr: r.percentage };
+        } else if (hasA && hasC) {
+          const r = data.regions.only_ac;
+          return { title: `${nameA}∩${nameC}`, valStr: isCounts ? `n=${r.count}` : `P=${r.prob.toFixed(4)}`, pctStr: r.percentage };
+        } else if (hasB && hasC) {
+          const r = data.regions.only_bc;
+          return { title: `${nameB}∩${nameC}`, valStr: isCounts ? `n=${r.count}` : `P=${r.prob.toFixed(4)}`, pctStr: r.percentage };
+        }
+      } else if (dSets.length === 3) {
+        const r = data.regions.intersection_abc;
+        return { title: `${nameA}∩${nameB}∩${nameC}`, valStr: isCounts ? `n=${r.count}` : `P=${r.prob.toFixed(4)}`, pctStr: r.percentage };
+      }
+    }
+    return null;
+  }
+
+  // Update existing SVG text labels
+  div.selectAll("g.venn-area").each(function(d) {
+    const info = getRegionInfo(d.sets);
+    if (!info) return;
+
+    let textNode = d3.select(this).select("text");
+    if (textNode.empty()) {
+      textNode = d3.select(this).append("text").attr("class", "label");
+    }
+
+    const x = textNode.attr("x") || 0;
+    const y = textNode.attr("y") || 0;
+
+    textNode.text(null);
+    textNode.append("tspan")
+      .attr("class", "venn-text-title")
+      .attr("x", x)
+      .attr("y", y)
+      .attr("dy", "-0.65em")
+      .text(info.title);
+
+    textNode.append("tspan")
+      .attr("class", "venn-text-val")
+      .attr("x", x)
+      .attr("y", y)
+      .attr("dy", "0.75em")
+      .text(info.valStr);
+
+    textNode.append("tspan")
+      .attr("class", "venn-text-sub")
+      .attr("x", x)
+      .attr("y", y)
+      .attr("dy", "1.9em")
+      .text(info.pctStr);
+  });
+
+  // Add Universal set badge & Exterior / Ninguno inside SVG
+  const svg = div.select("svg");
+  if (!svg.empty()) {
+    svg.select(".venn-universe-corner").remove();
+    const cornerGroup = svg.append("g").attr("class", "venn-universe-corner");
+
+    // Top-left universe symbol
+    cornerGroup.append("text")
+      .attr("x", 16)
+      .attr("y", 24)
+      .attr("class", "venn-universe-text")
+      .html(`<tspan class="venn-universe-highlight">𝕌</tspan> (Espacio Muestral${isCounts ? ` | N=${data.sample_space_size}` : ''})`);
+
+    // Top-right exterior / neither box
+    const neither = data.regions.neither;
+    if (neither) {
+      const neitherVal = isCounts ? `n = ${neither.count}` : `P = ${neither.prob.toFixed(4)}`;
+      const boxW = 210, boxH = 36;
+      const svgW = parseFloat(svg.attr("width")) || 540;
+      const boxX = svgW - boxW - 14;
+
+      const gBox = cornerGroup.append("g").attr("transform", `translate(${boxX}, 12)`);
+      gBox.append("rect")
+        .attr("width", boxW)
+        .attr("height", boxH)
+        .attr("class", "venn-universe-bg");
+
+      gBox.append("text")
+        .attr("x", 10)
+        .attr("y", 15)
+        .attr("class", "venn-universe-text")
+        .text(`Exterior / Ninguno: `)
+        .append("tspan")
+        .attr("class", "venn-universe-highlight")
+        .text(neitherVal);
+
+      gBox.append("text")
+        .attr("x", 10)
+        .attr("y", 29)
+        .attr("class", "venn-text-sub")
+        .text(`Complemento: ${neither.percentage}`);
+    }
+  }
 }
 
 // ── Regions Summary ───────────────────────────────────────────────────────────
@@ -619,16 +841,84 @@ function drawDirectVenn() {
   div.selectAll(".venn-circle path").style("fill",(d,i)=>COLORS[i%COLORS.length]).style("fill-opacity",0.42).style("stroke",(d,i)=>COLORS[i%COLORS.length]).style("stroke-width","2px");
   div.selectAll(".venn-intersection path").style("fill-opacity",0.62).style("stroke","rgba(255,255,255,.35)").style("stroke-width","1.5px");
 
+  // In-graph representation of data inside the Direct Venn regions!
+  const regionValues = (n === 2)
+    ? { onlyA: g("vd-only-a"), onlyB: g("vd-only-b"), ab: g("vd-inter-ab") }
+    : { oA: g("vd-3-only-a"), oB: g("vd-3-only-b"), oC: g("vd-3-only-c"), oAB: g("vd-3-only-ab"), oAC: g("vd-3-only-ac"), oBC: g("vd-3-only-bc"), abc: g("vd-3-abc") };
+  const neitherVal = (n === 2) ? g("vd-neither-2") : g("vd-3-neither");
+  formatDirectVennLabels(div, n, nameA, nameB, nameC, regionValues, totalN, neitherVal);
+
   const tooltip = document.getElementById("venn-direct-tooltip");
-  div.selectAll("g")
+  div.selectAll("g.venn-area")
     .on("mouseover", function(d) {
       venn.sortAreas(div,d);
       d3.select(this).select("path").style("fill-opacity",0.82).style("stroke-width","3.5px").style("stroke","#fff");
-      tooltip.innerHTML = `<div class="venn-tooltip-title">${d.sets.join("∩")}</div><div class="venn-tooltip-detail"><span>Tamaño:</span><span>${d.size.toFixed(0)}</span></div>`;
+      tooltip.innerHTML = `<div class="venn-tooltip-title">${d.sets.join(" ∩ ")}</div><div class="venn-tooltip-detail"><span>Tamaño:</span><span>${d.size.toFixed(0)}</span></div>`;
       tooltip.classList.add("visible");
     })
     .on("mousemove", function() { const r=container.getBoundingClientRect(); tooltip.style.left=`${d3.event.clientX-r.left}px`; tooltip.style.top=`${d3.event.clientY-r.top}px`; })
     .on("mouseout", function() { tooltip.classList.remove("visible"); d3.select(this).select("path").style("fill-opacity",d=>d.sets.length>1?0.62:0.42).style("stroke-width",d=>d.sets.length>1?"1.5px":"2px").style("stroke",d=>d.sets.length>1?"rgba(255,255,255,.35)":null); });
+
+function formatDirectVennLabels(div, n, nameA, nameB, nameC, regionValues, totalN, neitherVal) {
+  div.selectAll("g.venn-area").each(function(d) {
+    let title = "", val = 0;
+    if (n === 2) {
+      if (d.sets.length === 1) {
+        if (d.sets[0] === nameA) { title = `Solo ${nameA}`; val = regionValues.onlyA; }
+        else { title = `Solo ${nameB}`; val = regionValues.onlyB; }
+      } else {
+        title = `${nameA} ∩ ${nameB}`; val = regionValues.ab;
+      }
+    } else {
+      if (d.sets.length === 1) {
+        if (d.sets[0] === nameA) { title = `Solo ${nameA}`; val = regionValues.oA; }
+        else if (d.sets[0] === nameB) { title = `Solo ${nameB}`; val = regionValues.oB; }
+        else { title = `Solo ${nameC}`; val = regionValues.oC; }
+      } else if (d.sets.length === 2) {
+        const hasA = d.sets.includes(nameA), hasB = d.sets.includes(nameB), hasC = d.sets.includes(nameC);
+        if (hasA && hasB) { title = `${nameA}∩${nameB}`; val = regionValues.oAB; }
+        else if (hasA && hasC) { title = `${nameA}∩${nameC}`; val = regionValues.oAC; }
+        else { title = `${nameB}∩${nameC}`; val = regionValues.oBC; }
+      } else if (d.sets.length === 3) {
+        title = `${nameA}∩${nameB}∩${nameC}`; val = regionValues.abc;
+      }
+    }
+
+    let textNode = d3.select(this).select("text");
+    if (textNode.empty()) textNode = d3.select(this).append("text").attr("class", "label");
+
+    const x = textNode.attr("x") || 0;
+    const y = textNode.attr("y") || 0;
+    const pct = totalN > 0 ? `${((val / totalN) * 100).toFixed(1)}%` : "";
+
+    textNode.text(null);
+    textNode.append("tspan").attr("class", "venn-text-title").attr("x", x).attr("y", y).attr("dy", "-0.65em").text(title);
+    textNode.append("tspan").attr("class", "venn-text-val").attr("x", x).attr("y", y).attr("dy", "0.75em").text(val);
+    if (pct) {
+      textNode.append("tspan").attr("class", "venn-text-sub").attr("x", x).attr("y", y).attr("dy", "1.9em").text(`(${pct})`);
+    }
+  });
+
+  const svg = div.select("svg");
+  if (!svg.empty()) {
+    svg.select(".venn-universe-corner").remove();
+    const cornerGroup = svg.append("g").attr("class", "venn-universe-corner");
+    cornerGroup.append("text")
+      .attr("x", 16)
+      .attr("y", 24)
+      .attr("class", "venn-universe-text")
+      .html(`<tspan class="venn-universe-highlight">𝕌</tspan> (Total N = ${totalN})`);
+
+    const boxW = 200, boxH = 36;
+    const svgW = parseFloat(svg.attr("width")) || 540;
+    const boxX = svgW - boxW - 14;
+    const gBox = cornerGroup.append("g").attr("transform", `translate(${boxX}, 12)`);
+    gBox.append("rect").attr("width", boxW).attr("height", boxH).attr("class", "venn-universe-bg");
+    gBox.append("text").attr("x", 10).attr("y", 15).attr("class", "venn-universe-text").text("Exterior / Ninguno: ").append("tspan").attr("class", "venn-universe-highlight").text(neitherVal);
+    const neitherPct = totalN > 0 ? `${((neitherVal/totalN)*100).toFixed(1)}%` : "0%";
+    gBox.append("text").attr("x", 10).attr("y", 29).attr("class", "venn-text-sub").text(`Porcentaje: ${neitherPct}`);
+  }
+}
 
   // Regions summary
   const grid = document.getElementById("vd-regions-summary");
@@ -715,12 +1005,15 @@ function applyPreset(key) {
 // TAB 4 — CALCULADORA CIENTÍFICA (Casio FX-350ES Plus style)
 // ============================================================
 const calc = {
-  expression: "",     // what's being typed
+  expression: "",       // what's being typed
+  cursorPos: 0,         // text cursor position
   shiftOn: false,
   alphaOn: false,
-  angleMode: "DEG",   // DEG | RAD | GRAD
+  angleMode: "DEG",     // DEG | RAD | GRAD
   memory: 0,
   lastAnswer: 0,
+  lastFraction: null,   // { num, den, exact }
+  displayMode: "frac",  // "frac" | "dec" | "mixed"
   history: []
 };
 
@@ -728,15 +1021,26 @@ function initCalculator() {
   document.querySelectorAll(".calc-btn").forEach(btn => {
     btn.addEventListener("click", () => handleCalcBtn(btn));
   });
+
+  const fd = document.getElementById("calc-formula-display");
+  if (fd) {
+    fd.addEventListener("click", () => {
+      calc.cursorPos = calc.expression.length;
+      updateCalcDisplay();
+    });
+  }
+
   document.getElementById("btn-clear-history").addEventListener("click", () => {
     calc.history = [];
     document.getElementById("calc-history-list").innerHTML = `<p class="history-empty">Aún no hay cálculos registrados.</p>`;
   });
+
   // Keyboard support
   document.addEventListener("keydown", e => {
     if (!document.getElementById("panel-calculator").classList.contains("active")) return;
     handleCalcKey(e);
   });
+
   updateCalcDisplay();
 }
 
@@ -764,51 +1068,64 @@ function handleCalcBtn(btn) {
   }
   if (action === "fn-mode") return;
 
+  // Arrow navigation
+  if (action === "arrow-left") {
+    calc.cursorPos = Math.max(0, calc.cursorPos - 1);
+    updateCalcDisplay();
+    return;
+  }
+  if (action === "arrow-right") {
+    calc.cursorPos = Math.min(calc.expression.length, calc.cursorPos + 1);
+    updateCalcDisplay();
+    return;
+  }
+
   // Determine effective action considering SHIFT
   let eff = action;
   if (calc.shiftOn && btn.dataset.shift) {
     eff = btn.dataset.shift;
   }
 
-  if (action === "ac")      { calcAC(); }
-  else if (action === "del"){ calcDEL(); }
-  else if (action === "equals"){ calcEval(); }
-  else if (action === "digit") { calcAppend(val); }
-  else if (action === "dot")   { calcAppend("."); }
-  else if (action === "op")    { calcAppend(val === "×" ? "*" : val === "÷" ? "/" : val === "−" ? "-" : val); }
-  else if (action === "paren-open")  { calcAppend("("); }
-  else if (action === "paren-close") { calcAppend(")"); }
-  else if (action === "insert-pi")   { calcAppend("π"); }
-  else if (action === "insert-exp")  { calcAppend("E"); }
-  else if (action === "ans")         { calcAppend("ANS"); }
-  else if (action === "calc-x2")  { applyFn("^2"); }
-  else if (eff === "x3")          { applyFn("^3"); }
-  else if (action === "calc-sqrt")  { calcPrefixFn("sqrt("); }
-  else if (eff === "cbrt")          { calcPrefixFn("cbrt("); }
-  else if (action === "calc-pow")   { calcAppend("^"); }
-  else if (eff === "xroot")         { calcAppend("root("); }
-  else if (action === "calc-log")   { calcPrefixFn("log("); }
-  else if (eff === "10x")           { calcPrefixFn("pow(10,"); }
-  else if (action === "calc-ln")    { calcPrefixFn("ln("); }
-  else if (eff === "ex")            { calcPrefixFn("exp("); }
-  else if (action === "calc-sin")   { calcPrefixFn("sin("); }
-  else if (eff === "asin")          { calcPrefixFn("asin("); }
-  else if (action === "calc-cos")   { calcPrefixFn("cos("); }
-  else if (eff === "acos")          { calcPrefixFn("acos("); }
-  else if (action === "calc-tan")   { calcPrefixFn("tan("); }
-  else if (eff === "atan")          { calcPrefixFn("atan("); }
-  else if (action === "calc-hyp-sin")   { calcPrefixFn("sinh("); }
-  else if (eff === "hyp-asin")          { calcPrefixFn("asinh("); }
-  else if (action === "calc-hyp-cos")   { calcPrefixFn("cosh("); }
-  else if (eff === "hyp-acos")          { calcPrefixFn("acosh("); }
-  else if (action === "calc-hyp-tan")   { calcPrefixFn("tanh("); }
-  else if (eff === "hyp-atan")          { calcPrefixFn("atanh("); }
-  else if (action === "calc-nPr") { calcAppend("nPr("); }
-  else if (action === "calc-nCr") { calcAppend("nCr("); }
-  else if (action === "calc-percent") { applyFn("/100"); }
-  else if (action === "mem-sto") { calc.memory = calc.lastAnswer; document.getElementById("mem-display").textContent = fmt(calc.memory); }
-  else if (action === "mem-rcl") { calcAppend(String(calc.memory)); }
-  else if (action === "insert-S2F") { tryFraction(); return; }
+  if (action === "ac")             { calcAC(); }
+  else if (action === "del")       { calcDEL(); }
+  else if (action === "equals")    { calcEval(); }
+  else if (action === "calc-frac") { handleFracBtn(); }
+  else if (action === "digit")     { calcInsert(val); }
+  else if (action === "dot")       { calcInsert("."); }
+  else if (action === "op")        { calcInsert(val === "×" ? "*" : val === "÷" ? "/" : val === "−" ? "-" : val); }
+  else if (action === "paren-open"){ calcInsert("("); }
+  else if (action === "paren-close"){ calcInsert(")"); }
+  else if (action === "insert-pi") { calcInsert("π"); }
+  else if (action === "insert-exp"){ calcInsert("E"); }
+  else if (action === "ans")       { calcInsert("ANS"); }
+  else if (action === "calc-x2")   { calcInsert("^2"); }
+  else if (eff === "x3")           { calcInsert("^3"); }
+  else if (action === "calc-sqrt") { calcInsert("sqrt("); }
+  else if (eff === "cbrt")         { calcInsert("cbrt("); }
+  else if (action === "calc-pow")  { calcInsert("^"); }
+  else if (eff === "xroot")        { calcInsert("root("); }
+  else if (action === "calc-log")  { calcInsert("log("); }
+  else if (eff === "10x")          { calcInsert("pow(10,"); }
+  else if (action === "calc-ln")   { calcInsert("ln("); }
+  else if (eff === "ex")           { calcInsert("exp("); }
+  else if (action === "calc-sin")  { calcInsert("sin("); }
+  else if (eff === "asin")         { calcInsert("asin("); }
+  else if (action === "calc-cos")  { calcInsert("cos("); }
+  else if (eff === "acos")         { calcInsert("acos("); }
+  else if (action === "calc-tan")  { calcInsert("tan("); }
+  else if (eff === "atan")         { calcInsert("atan("); }
+  else if (action === "calc-hyp-sin")  { calcInsert("sinh("); }
+  else if (eff === "hyp-asin")         { calcInsert("asinh("); }
+  else if (action === "calc-hyp-cos")  { calcInsert("cosh("); }
+  else if (eff === "hyp-acos")         { calcInsert("acosh("); }
+  else if (action === "calc-hyp-tan")  { calcInsert("tanh("); }
+  else if (eff === "hyp-atan")         { calcInsert("atanh("); }
+  else if (action === "calc-nPr")      { calcInsert("nPr("); }
+  else if (action === "calc-nCr")      { calcInsert("nCr("); }
+  else if (action === "calc-percent")  { calcInsert("/100"); }
+  else if (action === "mem-sto")       { calc.memory = calc.lastAnswer; document.getElementById("mem-display").textContent = fmt(calc.memory); }
+  else if (action === "mem-rcl")       { calcInsert(String(calc.memory)); }
+  else if (action === "insert-S2F")    { handleS2F(); return; }
 
   // Reset shift/alpha after any non-meta action
   if (!["fn-shift","fn-alpha","toggle-angle","fn-mode"].includes(action)) {
@@ -821,50 +1138,146 @@ function handleCalcBtn(btn) {
       document.getElementById("btn-alpha").style.background = "";
     }
   }
-  updateCalcDisplay();
 }
 
 function handleCalcKey(e) {
   const k = e.key;
-  if (k >= "0" && k <= "9") calcAppend(k);
-  else if (k === ".") calcAppend(".");
-  else if (k === "+") calcAppend("+");
-  else if (k === "-") calcAppend("-");
-  else if (k === "*") calcAppend("*");
-  else if (k === "/") calcAppend("/");
-  else if (k === "(") calcAppend("(");
-  else if (k === ")") calcAppend(")");
-  else if (k === "^") calcAppend("^");
+  if (k >= "0" && k <= "9") calcInsert(k);
+  else if (k === ".") calcInsert(".");
+  else if (k === "+") calcInsert("+");
+  else if (k === "-") calcInsert("-");
+  else if (k === "*") calcInsert("*");
+  else if (k === "/") calcInsert("/");
+  else if (k === "(") calcInsert("(");
+  else if (k === ")") calcInsert(")");
+  else if (k === "^") calcInsert("^");
+  else if (k === "ArrowLeft")  { calc.cursorPos = Math.max(0, calc.cursorPos - 1); updateCalcDisplay(); }
+  else if (k === "ArrowRight") { calc.cursorPos = Math.min(calc.expression.length, calc.cursorPos + 1); updateCalcDisplay(); }
   else if (k === "Enter" || k === "=") { e.preventDefault(); calcEval(); }
   else if (k === "Backspace") calcDEL();
   else if (k === "Escape") calcAC();
-  else { return; }
+}
+
+function calcInsert(str, cursorOffset = str.length) {
+  const pos = Math.min(Math.max(0, calc.cursorPos), calc.expression.length);
+  calc.expression = calc.expression.slice(0, pos) + str + calc.expression.slice(pos);
+  calc.cursorPos = pos + cursorOffset;
   updateCalcDisplay();
 }
 
-function calcAppend(ch) { calc.expression += ch; }
-function calcPrefixFn(fn) { calc.expression += fn; }
-function applyFn(suffix) { calc.expression += suffix; }
+function calcDEL() {
+  if (calc.cursorPos > 0) {
+    const pos = calc.cursorPos;
+    calc.expression = calc.expression.slice(0, pos - 1) + calc.expression.slice(pos);
+    calc.cursorPos = pos - 1;
+    updateCalcDisplay();
+  }
+}
 
 function calcAC() {
   calc.expression = "";
-  document.getElementById("calc-result-display").textContent = "";
+  calc.cursorPos = 0;
+  calc.lastFraction = null;
+  document.getElementById("calc-result-display").innerHTML = "";
+  updateCalcDisplay();
 }
 
-function calcDEL() {
-  calc.expression = calc.expression.slice(0, -1);
+function handleFracBtn() {
+  if (calc.shiftOn) {
+    // Mixed fraction template: a b/c -> +( / )
+    calcInsert("+(/)", 2);
+    calc.shiftOn = false;
+    document.getElementById("btn-shift").style.background = "";
+    return;
+  }
+  const pos = calc.cursorPos;
+  const expr = calc.expression;
+  const prevChar = pos > 0 ? expr[pos - 1] : "";
+  if (/[0-9)π]/.test(prevChar)) {
+    calcInsert("/");
+  } else {
+    calcInsert("(/)", 1);
+  }
+}
+
+// ── Continued Fractions for Exact Rational Representation ────────────────────
+function toFraction(val, maxDenom = 10000) {
+  if (!isFinite(val)) return null;
+  const sign = val < 0 ? -1 : 1;
+  let x = Math.abs(val);
+  if (Math.abs(x - Math.round(x)) < 1e-10) {
+    return { num: sign * Math.round(x), den: 1, exact: true };
+  }
+  let m00 = 1, m01 = 0, m10 = 0, m11 = 1;
+  let b = x;
+  for (let iter = 0; iter < 30; iter++) {
+    let a = Math.floor(b);
+    let t0 = m00 * a + m01; m01 = m00; m00 = t0;
+    let t1 = m10 * a + m11; m11 = m10; m10 = t1;
+    if (m10 > maxDenom) break;
+    let err = Math.abs(x - m00 / m10);
+    if (err < 1e-11) break;
+    let rem = b - a;
+    if (rem < 1e-12) break;
+    b = 1 / rem;
+  }
+  return { num: sign * m00, den: m10, exact: Math.abs(val - (sign * m00 / m10)) < 1e-6 };
+}
+
+function handleS2F() {
+  const rd = document.getElementById("calc-result-display");
+  if (!calc.lastFraction && calc.lastAnswer !== null) {
+    calc.lastFraction = toFraction(calc.lastAnswer);
+  }
+  if (!calc.lastFraction || calc.lastFraction.den === 1) return;
+
+  const f = calc.lastFraction;
+  const num = f.num, den = f.den;
+  const isImproper = Math.abs(num) > den;
+
+  if (calc.displayMode === "frac") {
+    if (isImproper) {
+      calc.displayMode = "mixed";
+      const whole = Math.trunc(num / den);
+      const rem   = Math.abs(num % den);
+      rd.innerHTML = `= ${whole} <span class="casio-fraction"><span class="c-num">${rem}</span><span class="c-bar"></span><span class="c-den">${den}</span></span>`;
+    } else {
+      calc.displayMode = "dec";
+      rd.textContent = `= ${fmt(calc.lastAnswer)}`;
+    }
+  } else if (calc.displayMode === "mixed") {
+    calc.displayMode = "dec";
+    rd.textContent = `= ${fmt(calc.lastAnswer)}`;
+  } else {
+    calc.displayMode = "frac";
+    rd.innerHTML = `= <span class="casio-fraction"><span class="c-num">${num}</span><span class="c-bar"></span><span class="c-den">${den}</span></span>`;
+  }
 }
 
 function calcEval() {
   if (!calc.expression.trim()) return;
+  const rd = document.getElementById("calc-result-display");
   try {
     const result = evaluateExpr(calc.expression);
     calc.lastAnswer = result;
     addToHistory(calc.expression, result);
-    document.getElementById("calc-result-display").textContent = `= ${fmt(result)}`;
+
+    const frac = toFraction(result);
+    calc.lastFraction = frac;
+
+    if (frac && frac.den > 1 && frac.exact) {
+      calc.displayMode = "frac";
+      rd.innerHTML = `= <span class="casio-fraction"><span class="c-num">${frac.num}</span><span class="c-bar"></span><span class="c-den">${frac.den}</span></span> <span style="font-size:.78em;color:rgba(0,40,0,.6);margin-left:4px">(${fmt(result)})</span>`;
+    } else {
+      calc.displayMode = "dec";
+      rd.textContent = `= ${fmt(result)}`;
+    }
+
+    // Set expression for continuous chaining
     calc.expression = fmt(result);
+    calc.cursorPos = calc.expression.length;
   } catch (err) {
-    document.getElementById("calc-result-display").textContent = "Error: " + err.message;
+    rd.textContent = "Error: " + err.message;
   }
   updateCalcDisplay();
 }
@@ -930,23 +1343,6 @@ function fmt(n) {
   return parseFloat(s).toString();
 }
 
-function tryFraction() {
-  const v = calc.lastAnswer;
-  if (Number.isInteger(v) || !isFinite(v)) return;
-  // Approximation to simple fraction using continued fractions (up to denom 1000)
-  let best = { n:Math.round(v), d:1, err:Math.abs(v - Math.round(v)) };
-  for (let d = 2; d <= 1000; d++) {
-    const n = Math.round(v * d);
-    const err = Math.abs(v - n / d);
-    if (err < best.err) best = { n, d, err };
-    if (err < 1e-9) break;
-  }
-  const frac = `${best.n}/${best.d}`;
-  calc.expression = frac;
-  document.getElementById("calc-result-display").textContent = `≈ ${frac}`;
-  updateCalcDisplay();
-}
-
 function addToHistory(expr, result) {
   const list = document.getElementById("calc-history-list");
   const empty = list.querySelector(".history-empty");
@@ -958,24 +1354,39 @@ function addToHistory(expr, result) {
   const entry = document.createElement("div");
   entry.className = "history-entry";
   entry.innerHTML = `<div class="history-expr">${expr.replace(/</g,"&lt;")}</div><div class="history-result">= ${fmt(result)}</div>`;
-  entry.addEventListener("click", () => { calc.expression = String(result); updateCalcDisplay(); });
+  entry.addEventListener("click", () => {
+    calc.expression = String(result);
+    calc.cursorPos = calc.expression.length;
+    updateCalcDisplay();
+  });
   list.insertBefore(entry, list.firstChild);
 }
 
 function updateCalcDisplay() {
   const fd = document.getElementById("calc-formula-display");
-  const rd = document.getElementById("calc-result-display");
-  // Format display expression: replace internal tokens with pretty symbols
-  let disp = calc.expression
+  if (!fd) return;
+
+  const expr = calc.expression;
+  const pos  = Math.min(Math.max(0, calc.cursorPos), expr.length);
+  const left = expr.slice(0, pos);
+  const right = expr.slice(pos);
+
+  const formatSide = s => s
     .replace(/\*\*/g,"^").replace(/\*/g,"×").replace(/\//g,"÷")
     .replace(/-/g,"−").replace(/Math\.PI/g,"π")
-    .replace(/Math\.sqrt\(/g,"√(").replace(/Math\.cbrt\(/g,"∛(")
+    .replace(/Math\.sqrt\(/g,"√(").replace(/sqrt\(/g,"√(")
+    .replace(/Math\.cbrt\(/g,"∛(").replace(/cbrt\(/g,"∛(")
     .replace(/Math\.log\(/g,"ln(").replace(/Math\.log10\(/g,"log(")
     .replace(/Math\.exp\(/g,"eˣ(").replace(/Math\.pow\(10,/g,"10^(")
     .replace(/Math\.sin\(/g,"sin(").replace(/Math\.cos\(/g,"cos(").replace(/Math\.tan\(/g,"tan(")
     .replace(/Math\.asin\(/g,"sin⁻¹(").replace(/Math\.acos\(/g,"cos⁻¹(").replace(/Math\.atan\(/g,"tan⁻¹(")
     .replace(/Math\.sinh\(/g,"sinh(").replace(/Math\.cosh\(/g,"cosh(").replace(/Math\.tanh\(/g,"tanh(")
     .replace(/Math\.asinh\(/g,"sinh⁻¹(").replace(/Math\.acosh\(/g,"cosh⁻¹(").replace(/Math\.atanh\(/g,"tanh⁻¹(")
-    .replace(/\(1×10\^\(/g,"×10^(");
-  fd.textContent = disp || "0";
+    .replace(/root\(/g,"√(")
+    .replace(/E(\d)/g,"×10^$1");
+
+  const leftDisp  = formatSide(left);
+  const rightDisp = formatSide(right);
+
+  fd.innerHTML = `${leftDisp}<span class="calc-cursor"></span>${rightDisp}`;
 }

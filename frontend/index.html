@@ -38,7 +38,7 @@
           </svg>
         </div>
         <div>
-          <h1 class="brand-title">VennProb <span class="badge-tag">v2.0</span></h1>
+          <h1 class="brand-title">VennProb <span class="badge-tag">v2.1</span></h1>
           <p class="brand-subtitle">Probabilidad · Conjuntos · Diagramas de Venn · Calculadora Científica</p>
         </div>
       </div>
@@ -717,10 +717,14 @@
               <button class="calc-btn btn-fn" data-action="toggle-angle">DEG</button>
             </div>
 
-            <!-- Row 1 -->
+            <!-- Row 1: Fracción, Potencias, Raíces y Logaritmos -->
             <div class="calc-row">
-              <button class="calc-btn btn-yellow" data-action="calc-x2" data-shift="x3" data-alpha="">x²<br><small>x³</small></button>
+              <button class="calc-btn btn-frac" data-action="calc-frac" data-shift="calc-mixed-frac" id="btn-frac" title="Fracción / Número Mixto">
+                <span class="frac-icon"><span>■</span><span class="f-bar"></span><span>□</span></span>
+                <small>a b/c</small>
+              </button>
               <button class="calc-btn btn-yellow" data-action="calc-sqrt" data-shift="cbrt" data-alpha="">√<br><small>∛</small></button>
+              <button class="calc-btn btn-yellow" data-action="calc-x2" data-shift="x3" data-alpha="">x²<br><small>x³</small></button>
               <button class="calc-btn btn-yellow" data-action="calc-pow" data-shift="xroot">x^y<br><small>x√y</small></button>
               <button class="calc-btn btn-yellow" data-action="calc-log" data-shift="10x">log<br><small>10ˣ</small></button>
               <button class="calc-btn btn-yellow" data-action="calc-ln" data-shift="ex">ln<br><small>eˣ</small></button>
@@ -820,7 +824,7 @@
   <!-- ── FOOTER ── -->
   <footer class="app-footer">
     <div class="footer-container">
-      <p>VennProb v2.0 © 2026 · Python · Flask · D3.js · Venn.js · KaTeX</p>
+      <p>VennProb v2.1 © 2026 · Python · Flask · D3.js · Venn.js · KaTeX</p>
       <span class="status-indicator-mini"><span class="pulse-mini"></span>API REST Activa</span>
     </div>
   </footer>
