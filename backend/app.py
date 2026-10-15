@@ -6,9 +6,23 @@ import os
 from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
 try:
-    from backend.logic import solve_one_event, solve_two_events, solve_three_events, AxiomViolationError
+    from backend.logic import (
+        solve_one_event,
+        solve_two_events,
+        solve_three_events,
+        AxiomViolationError,
+        safe_eval,
+        to_fraction,
+    )
 except ImportError:
-    from logic import solve_one_event, solve_two_events, solve_three_events, AxiomViolationError
+    from logic import (
+        solve_one_event,
+        solve_two_events,
+        solve_three_events,
+        AxiomViolationError,
+        safe_eval,
+        to_fraction,
+    )
 
 # Configuración de rutas estáticas para poder servir el frontend opcionalmente desde Flask
 FRONTEND_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "frontend"))
@@ -108,6 +122,42 @@ def solve():
             "error_type": "InternalServerError",
             "error": f"Error inesperado en el servidor: {str(e)}"
         }), 500
+
+
+@app.route("/api/calculate", methods=["POST"])
+def calculate():
+    """
+    Endpoint para evaluación matemática de expresiones y funciones de la calculadora.
+    Espera un JSON con:
+      - expr: expresión matemática en formato texto (ej: "sin(30)", "nCr(5,2)")
+      - angle_mode: 'DEG', 'RAD' o 'GRAD' (opcional, default 'DEG')
+    """
+    if not request.is_json:
+        return jsonify({"status": "error", "error": "Formato JSON requerido."}), 400
+
+    data = request.get_json() or {}
+    expr = data.get("expr", "").strip()
+    if not expr:
+        return jsonify({"status": "error", "error": "La expresión no puede estar vacía."}), 400
+
+    angle_mode = data.get("angle_mode", "DEG").upper()
+    if angle_mode not in ["DEG", "RAD", "GRAD"]:
+        angle_mode = "DEG"
+
+    try:
+        result = safe_eval(expr, angle_mode=angle_mode)
+        fraction_info = to_fraction(result)
+        return jsonify({
+            "status": "success",
+            "expression": expr,
+            "angle_mode": angle_mode,
+            "result": result,
+            "fraction": fraction_info
+        }), 200
+    except (ValueError, OverflowError, ZeroDivisionError) as e:
+        return jsonify({"status": "error", "error": str(e)}), 400
+    except Exception as e:
+        return jsonify({"status": "error", "error": f"Error al evaluar: {str(e)}"}), 400
 
 
 if __name__ == "__main__":

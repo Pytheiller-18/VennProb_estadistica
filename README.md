@@ -1,9 +1,9 @@
-# VennProb v2.1 — Solucionador de Probabilidad, Diagramas de Venn y Calculadora Científica
+# VennProb v2.2 — Solucionador de Probabilidad, Diagramas de Venn y Calculadora Científica
 
-![Version](https://img.shields.io/badge/Version-2.1.0-blue?style=for-the-badge)
+![Version](https://img.shields.io/badge/Version-2.2.0-blue?style=for-the-badge)
 ![Python](https://img.shields.io/badge/Python-3.10%2B-blue?logo=python)
 ![Flask](https://img.shields.io/badge/Flask-3.0%2B-green?logo=flask)
-![JavaScript](https://img.shields.io/badge/JavaScript-Vanilla%20ES6%2B-yellow?logo=javascript)
+![JavaScript](https://img.shields.io/badge/JavaScript-Modular%20ES6%2B-yellow?logo=javascript)
 ![D3.js](https://img.shields.io/badge/Visualizaci%C3%B3n-D3.js%20%2B%20Venn.js-orange)
 ![KaTeX](https://img.shields.io/badge/Matem%C3%A1ticas-KaTeX%20LaTeX-brightgreen)
 ![Casio](https://img.shields.io/badge/Calculadora-Casio%20fx--350ES%20Plus-darkblue)
@@ -13,21 +13,23 @@
 
 ---
 
-## 🚀 Novedades de la Versión 2.1
+## 🚀 Novedades de la Versión 2.2 — Arquitectura Modular por Carpetas
 
-### 📊 Representación de Datos Dentro del Diagrama de Venn
-- **Valores en cada región:** Tanto en el Solucionador como en el Graficador Directo, cada región y lente de intersección proyecta en la misma gráfica:
-  - Nombre del conjunto o intersección ($A$, $B$, $C$, $A \cap B$, $A \cap C$, $B \cap C$, $A \cap B \cap C$).
-  - Valor numérico exacto de probabilidad ($P$) o conteo ($n$).
-  - Porcentaje correspondiente respecto al espacio muestral total ($S$ / $\mathbb{U}$).
-- **Marco del Espacio Muestral ($\mathbb{U}$):** Identificador visual de Universo en la esquina superior izquierda y tarjeta en la esquina superior derecha indicando el **Exterior / Ninguno** (el complemento $(A \cup B)^c$ o $(A \cup B \cup C)^c$).
-- **Diagrama de Venn para 1 Evento:** Representación visual con el rectángulo del Universo $\mathbb{U}$, el círculo del Evento $A$ con su probabilidad y conteo, y el área complementaria con $P(A^c)$ y los odds asociados.
+Se organizó la base de código tanto en el cliente como en el servidor en **módulos desacoplados y carpetas especializadas**:
 
-### 🔢 Calculadora Científica Casio fx-350ES PLUS
-- **Cursor de Texto LCD Activo:** Pantalla con cursor parpadeante que indica con exactitud la posición de edición. Permite desplazarse a izquierda y derecha con los botones de flechas (◄ y ►) o teclas físicas, facilitando inserciones y correcciones con la tecla `DEL`.
-- **Tecla de Fracción Natural (`■/□`):** Permite escribir fracciones directamente en pantalla y números mixtos ($a \frac{b}{c}$) mediante `SHIFT`.
-- **Conversor Estándar/Decimal (`S↔D`):** Algoritmo de fracciones continuas para alternar instantáneamente entre la fracción irreducible ($\frac{a}{b}$), el número mixto ($a \frac{b}{c}$) y la notación decimal.
-- **Funciones Científicas Completas:** Trigonometría (DEG, RAD, GRAD), funciones hiperbólicas, combinatoria ($nCr$), permutaciones ($nPr$), factoriales ($x!$), potencias ($x^y$), raíces ($\sqrt{}$, $\sqrt[3]{}$, $\sqrt[x]{}$), logaritmos ($\log$, $\ln$), memoria (STO / RCL) e historial de cálculos.
+- 📂 **Módulo de Espacio Muestral (`espacio_muestral`)**:
+  - **Backend:** Validación de axiomas de Kolmogorov (`axioms.py`), cálculo de Laplace, normalización de cardinalidades de $S$ o $\mathbb{U}$, y motor de resolución de 1, 2 y 3 eventos (`solver.py`).
+  - **Frontend:** Formularios interactivos, gestión de eventos disjuntos, visualización del espacio muestral para 1 evento, tarjeta de exterior/complemento y tabla de métricas inferenciales.
+- 📂 **Módulo de Calculadora Científica (`calculadora`)**:
+  - **Backend:** Evaluación matemática segura (`scientific.py`), combinatoria ($nCr$, $nPr$, $n!$), y algoritmo de fracciones continuas para simplificación irreducible.
+  - **Frontend:** Emulación Casio fx-350ES PLUS, cursor LCD parpadeante y navegable con flechas, teclas serigrafiadas con doble función (SHIFT/ALPHA), fracciones naturales (`■/□`) y conversor `S↔D`.
+- 📂 **Módulo de Diagramas de Venn (`diagrama_venn`)**:
+  - **Backend:** Cálculo de particiones disjuntas y regiones mutuamente excluyentes para 2 y 3 conjuntos (`partitions.py`).
+  - **Frontend:** Renderizador D3.js y Venn.js con textos de probabilidad/conteo impresos dentro de cada área o intersección, enmarcado del universo ($\mathbb{U}$), panel de graficación por datos directos y exportación SVG.
+- 📂 **Módulo de Ejemplos (`ejemplos`)**:
+  - Catálogo de problemas clásicos organizados por dificultad con precarga automática en el solucionador en un clic.
+- 📂 **Módulo Común (`common`)**:
+  - Estado global reactivo (`state.js`), cliente de API REST y healthcheck (`api.js`), y controlador de pestañas (`navigation.js`).
 
 ---
 
@@ -35,7 +37,7 @@
 
 La interfaz está dividida en cuatro pestañas de navegación dedicadas:
 
-1. **🧮 Solucionador de Probabilidad:**
+1. **🧮 Solucionador de Probabilidad (Espacio Muestral):**
    - Soporte para **1, 2 y 3 eventos**.
    - Modo de entrada por **Probabilidades directas $[0, 1]$** o **Conteos / Frecuencias ($|E|, |S|$)**.
    - Detección automática de tipología (mutuamente excluyentes/disjuntos, intersección dependiente, deducción algebraica).
@@ -49,7 +51,6 @@ La interfaz está dividida en cuatro pestañas de navegación dedicadas:
    - Exportación vectorial a formato **SVG**.
 
 3. **📚 Ejemplos y Ejercicios Prácticos:**
-   - Sección independiente que mantiene limpia la vista principal.
    - Banco de ejercicios clásicos: dados disjuntos, asignaturas intersecantes, encuestas con conteos ($N=200$), plataformas de streaming (3 eventos con intersección triple) e idiomas con deducción de Poincaré.
    - Botón *"Cargar en Solucionador"* para rellenar los formularios y resolver el problema en un clic.
 
@@ -66,17 +67,46 @@ La interfaz está dividida en cuatro pestañas de navegación dedicadas:
 ```text
 VennProb_estadistica/
 ├── backend/
-│   ├── app.py           # Servidor RESTful Flask y rutas API
-│   ├── logic.py         # Motor matemático, validaciones axiomáticas y particiones
-│   ├── test_logic.py    # Suite de pruebas unitarias para logic.py
-│   └── test_api.py      # Pruebas de integración de endpoints REST
+│   ├── app.py                      # Servidor Flask y endpoints REST (/api/solve, /api/calculate, /api/health)
+│   ├── logic.py                    # Fachada unificada y compatibilidad hacia atrás
+│   ├── modules/                    # Módulos del Backend
+│   │   ├── espacio_muestral/       # Módulo del Espacio Muestral y Axiomas
+│   │   │   ├── __init__.py
+│   │   │   ├── axioms.py           # Validaciones axiomáticas de Kolmogorov
+│   │   │   └── solver.py           # Solucionador para 1, 2 y 3 eventos
+│   │   ├── calculadora/            # Módulo de la Calculadora Científica
+│   │   │   ├── __init__.py
+│   │   │   └── scientific.py       # Combinatoria (nCr, nPr, n!), fracciones continuas y safe_eval
+│   │   └── diagrama_venn/          # Módulo de Particiones de Venn
+│   │       ├── __init__.py
+│   │       └── partitions.py       # Cálculo de particiones disjuntas 2 y 3 conjuntos
+│   ├── test_logic.py               # Pruebas unitarias para logic.py
+│   ├── test_api.py                 # Pruebas de integración de endpoints REST
+│   └── test_modules.py             # Pruebas unitarias directas sobre los submódulos
 ├── frontend/
-│   ├── index.html       # Estructura semántica, pestañas y teclado Casio
-│   ├── app.js           # Lógica cliente, renderizado Venn con etiquetas y motor calculadora
-│   └── style.css        # Sistema de diseño Glassmorphism, temas y display LCD
-├── .gitignore           # Exclusiones de control de versiones
-├── requirements.txt     # Dependencias de Python
-└── README.md            # Documentación general del proyecto
+│   ├── index.html                  # Interfaz semántica con inclusión modular de estilos y scripts
+│   ├── app.js                      # Orquestador principal de inicialización
+│   ├── style.css                   # Sistema de diseño base Glassmorphism y temas
+│   └── modules/                    # Módulos del Frontend
+│       ├── common/                 # Componentes compartidos
+│       │   ├── state.js            # Estado reactivo global
+│       │   ├── api.js              # Conexión HTTP y healthcheck
+│       │   └── navigation.js       # Navegación entre pestañas
+│       ├── espacio_muestral/       # Módulo del Espacio Muestral
+│       │   ├── espacio_muestral.js # Lógica del solucionador, métricas y pasos KaTeX
+│       │   └── espacio_muestral.css# Estilos de formulario, inputs y tablas
+│       ├── calculadora/            # Módulo de la Calculadora Casio
+│       │   ├── calculadora.js      # Motor LCD, cursor, fracciones naturales y eventos
+│       │   └── calculadora.css     # Chasis Casio, display LCD y botonera serigrafiada
+│       ├── diagrama_venn/          # Módulo de Diagramas de Venn
+│       │   ├── diagrama_venn.js    # Gráficas D3.js/Venn.js con datos impresos y exportación SVG
+│       │   └── diagrama_venn.css   # Contenedores de diagrama, tooltips y badges de universo
+│       └── ejemplos/               # Módulo de Ejemplos
+│           ├── ejemplos.js         # Banco de problemas y precarga en el solucionador
+│           └── ejemplos.css        # Tarjetas de ejercicios y badges
+├── .gitignore                      # Exclusiones de Git
+├── requirements.txt                # Dependencias de Python
+└── README.md                       # Documentación exhaustiva del proyecto
 ```
 
 ---
@@ -114,10 +144,10 @@ VennProb_estadistica/
 
 ## 🧪 Pruebas Automatizadas
 
-El proyecto incluye 15 pruebas unitarias y de integración que verifican la consistencia matemática y las respuestas HTTP:
+El proyecto incluye **20 pruebas automatizadas** que verifican exhaustivamente la consistencia matemática, los axiomas de Kolmogorov, las particiones de Venn, las funciones de la calculadora científica y las respuestas HTTP de los endpoints REST:
 
 ```bash
-# Ejecutar todas las pruebas del backend
+# Ejecutar toda la suite de pruebas automatizadas
 python -m unittest discover backend
 ```
 
@@ -126,7 +156,7 @@ python -m unittest discover backend
 ## 📡 Endpoints de la API REST
 
 ### `POST /api/solve`
-Calcula la solución del problema de probabilidad según el número de eventos indicado.
+Calcula la solución del problema de probabilidad según el número de eventos indicado (1, 2 o 3 eventos).
 
 - **Headers:** `Content-Type: application/json`
 - **Ejemplo Payload (2 Eventos):**
@@ -142,6 +172,26 @@ Calcula la solución del problema de probabilidad según el número de eventos i
   ```
 - **Respuesta (HTTP 200):**
   Contiene `typology`, `steps`, `probabilities`, `regions`, `venn_data` y `names`.
+
+### `POST /api/calculate`
+Evalúa de forma segura expresiones matemáticas y combinatorias para la calculadora científica con soporte para grados (DEG), radianes (RAD) y gradianes (GRAD).
+
+- **Headers:** `Content-Type: application/json`
+- **Ejemplo Payload:**
+  ```json
+  {
+    "expr": "nCr(5, 2) + sin(30)",
+    "angle_mode": "DEG"
+  }
+  ```
+- **Respuesta (HTTP 200):**
+  ```json
+  {
+    "status": "success",
+    "result": 10.5,
+    "fraction": { "numerator": 21, "denominator": 2, "exact": true, "str": "21/2" }
+  }
+  ```
 
 ### `GET /api/health`
 Retorna el estado de disponibilidad del backend.

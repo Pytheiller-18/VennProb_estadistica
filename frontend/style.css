@@ -1,6 +1,12 @@
 /* ==========================================================================
-   VennProb v2.0 — Design System & Full UI Stylesheet
+   VennProb v2.2 — Design System & Modular UI Stylesheet
+   Importación de hojas de estilo modulares:
    ========================================================================== */
+@import url('modules/espacio_muestral/espacio_muestral.css');
+@import url('modules/diagrama_venn/diagrama_venn.css');
+@import url('modules/calculadora/calculadora.css');
+@import url('modules/ejemplos/ejemplos.css');
+
 :root {
   --bg-primary:  #080c16;
   --bg-surface:  #0f172a;

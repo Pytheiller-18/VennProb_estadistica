@@ -1,0 +1,263 @@
+/* ==========================================================================
+   Módulo: Espacio Muestral y Solucionador de Probabilidad
+   Estilos específicos para selectores de eventos, formularios de conteo/probabilidad,
+   tarjetas de pasos algebraicos y tablas inferenciales.
+   ========================================================================== */
+
+/* ── Segmented Control ── */
+.segmented-control {
+  display: flex;
+  background: var(--bg-input);
+  border: 1px solid var(--border-sub);
+  border-radius: var(--r-md);
+  padding: .28rem;
+  gap: .25rem;
+}
+
+.segment-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: .45rem;
+  padding: .5rem .75rem;
+  border-radius: var(--r-sm);
+  background: transparent;
+  border: none;
+  color: var(--txt-m);
+  font-size: .83rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--t-fast);
+}
+
+.segment-btn:hover {
+  color: var(--txt);
+  background: rgba(255, 255, 255, .04);
+}
+
+.segment-btn.active {
+  background: var(--primary);
+  color: #fff;
+  box-shadow: 0 0 14px var(--primary-glow);
+  font-weight: 600;
+}
+
+.segment-icon {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, .15);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: .68rem;
+  font-weight: 700;
+}
+
+/* ── Radio Pills (Modo de Entrada) ── */
+.radio-pill-group {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: .6rem;
+}
+
+.radio-pill {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: .55rem .85rem;
+  border-radius: var(--r-md);
+  border: 1px solid var(--border-sub);
+  background: var(--bg-input);
+  color: var(--txt-m);
+  font-size: .82rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--t-fast);
+  text-align: center;
+}
+
+.radio-pill input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.radio-pill:hover {
+  border-color: rgba(255, 255, 255, .14);
+  color: var(--txt);
+}
+
+.radio-pill:has(input:checked) {
+  border-color: var(--border-focus);
+  background: rgba(99, 102, 241, .12);
+  color: #c7d2fe;
+  box-shadow: 0 0 12px rgba(99, 102, 241, .2);
+}
+
+/* ── Form Inputs ── */
+.control-label {
+  display: block;
+  font-size: .78rem;
+  font-weight: 600;
+  color: var(--txt-m);
+  text-transform: uppercase;
+  letter-spacing: .05em;
+  margin-bottom: .45rem;
+}
+
+.form-group-special {
+  background: rgba(99, 102, 241, .07);
+  border: 1px solid rgba(99, 102, 241, .2);
+  border-radius: var(--r-md);
+  padding: .85rem;
+  margin-bottom: .85rem;
+}
+
+.input-with-prefix {
+  display: flex;
+  align-items: stretch;
+  background: var(--bg-input);
+  border: 1px solid var(--border-sub);
+  border-radius: var(--r-md);
+  overflow: hidden;
+  transition: border-color var(--t-fast);
+}
+
+.input-with-prefix:focus-within {
+  border-color: var(--border-focus);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, .15);
+}
+
+.input-prefix {
+  padding: .5rem .75rem;
+  background: rgba(255, 255, 255, .03);
+  border-right: 1px solid var(--border-sub);
+  font-size: .8rem;
+  color: var(--txt-m);
+  font-family: var(--mono);
+  display: flex;
+  align-items: center;
+  white-space: nowrap;
+}
+
+.input-with-prefix input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  padding: .5rem .85rem;
+  color: var(--txt);
+  font-size: .9rem;
+  font-family: var(--mono);
+  width: 100%;
+}
+
+/* ── Banner de Violación Axiomática ── */
+.axiom-banner {
+  background: rgba(244, 63, 94, .1);
+  border: 1px solid rgba(244, 63, 94, .35);
+  border-radius: var(--r-lg);
+  padding: 1.1rem 1.4rem;
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  animation: slideDown .25s ease-out;
+}
+
+.axiom-banner-icon {
+  background: rgba(244, 63, 94, .2);
+  border-radius: 50%;
+  padding: .4rem;
+  color: var(--rose);
+  flex-shrink: 0;
+}
+
+.axiom-title {
+  font-size: .95rem;
+  font-weight: 700;
+  color: var(--rose);
+  margin-bottom: .25rem;
+}
+
+.axiom-desc {
+  font-size: .83rem;
+  color: #fecdd3;
+  line-height: 1.45;
+}
+
+/* ── Step Cards ── */
+.steps-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.step-card {
+  background: rgba(15, 23, 42, .6);
+  border: 1px solid var(--border-sub);
+  border-radius: var(--r-md);
+  padding: 1rem 1.25rem;
+  border-left: 3px solid var(--primary);
+  transition: all var(--t-fast);
+}
+
+.step-card:hover {
+  background: rgba(15, 23, 42, .85);
+  border-color: rgba(99, 102, 241, .3);
+}
+
+.step-title {
+  font-size: .88rem;
+  font-weight: 600;
+  color: var(--txt);
+  margin-bottom: .3rem;
+}
+
+.step-explanation {
+  font-size: .8rem;
+  color: var(--txt-m);
+  line-height: 1.45;
+  margin-bottom: .65rem;
+}
+
+.step-formula-box {
+  background: rgba(0, 0, 0, .3);
+  border-radius: var(--r-sm);
+  padding: .75rem 1rem;
+  font-family: var(--mono);
+  overflow-x: auto;
+}
+
+/* ── Metrics Table ── */
+.metrics-table-wrapper {
+  overflow-x: auto;
+}
+
+.metrics-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: .84rem;
+}
+
+.metrics-table th {
+  text-align: left;
+  padding: .65rem .9rem;
+  font-size: .72rem;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+  color: var(--txt-d);
+  border-bottom: 1px solid var(--border-sub);
+}
+
+.metrics-table td {
+  padding: .65rem .9rem;
+  border-bottom: 1px solid rgba(255, 255, 255, .03);
+  color: var(--txt);
+}
+
+.metrics-table tr:hover td {
+  background: rgba(255, 255, 255, .02);
+}

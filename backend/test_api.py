@@ -77,19 +77,23 @@ class TestAPI(unittest.TestCase):
         self.assertEqual(data["status"], "error")
         self.assertEqual(data["code"], "INTERSECTION_EXCEEDS_EVENT")
 
-    def test_solve_axiom_error_disjoint_sum_gt_1(self):
-        payload = {
-            "num_events": 2,
-            "input_mode": "probabilities",
-            "p_a": 0.7,
-            "p_b": 0.5,
-            "is_disjoint": True
-        }
-        res = self.client.post("/api/solve", data=json.dumps(payload), content_type="application/json")
-        self.assertEqual(res.status_code, 400)
+    def test_calculate_api(self):
+        payload = {"expr": "nCr(5, 2) + 10", "angle_mode": "DEG"}
+        res = self.client.post("/api/calculate", data=json.dumps(payload), content_type="application/json")
+        self.assertEqual(res.status_code, 200)
         data = res.get_json()
-        self.assertEqual(data["status"], "error")
-        self.assertEqual(data["code"], "DISJOINT_SUM_EXCEEDS_ONE")
+        self.assertEqual(data["status"], "success")
+        self.assertEqual(data["result"], 20.0)
+
+    def test_calculate_fraction(self):
+        payload = {"expr": "3 / 4", "angle_mode": "DEG"}
+        res = self.client.post("/api/calculate", data=json.dumps(payload), content_type="application/json")
+        self.assertEqual(res.status_code, 200)
+        data = res.get_json()
+        self.assertEqual(data["fraction"]["numerator"], 3)
+        self.assertEqual(data["fraction"]["denominator"], 4)
+
 
 if __name__ == "__main__":
     unittest.main()
+

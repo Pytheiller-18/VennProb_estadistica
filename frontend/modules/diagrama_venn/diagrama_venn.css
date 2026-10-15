@@ -1,0 +1,187 @@
+/* ==========================================================================
+   Módulo: Diagrama de Venn
+   Estilos específicos para renderizado D3/Venn.js, etiquetas interiores,
+   tarjetas de universo y particiones disjuntas.
+   ========================================================================== */
+
+.venn-diagram-card {
+  position: relative;
+  min-height: 420px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-card);
+  border: 1px solid var(--border-sub);
+  border-radius: var(--r-xl);
+  padding: 1.5rem;
+  overflow: hidden;
+}
+
+.venn-container {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.venn-container svg {
+  max-width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+/* ── In-Graph Labels Inside Venn Regions ── */
+.venn-text-title {
+  fill: #ffffff;
+  font-weight: 700;
+  font-size: 13px;
+  text-anchor: middle;
+  filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.9));
+  pointer-events: none;
+}
+
+.venn-text-val {
+  fill: #a5f3fc;
+  font-weight: 700;
+  font-size: 12px;
+  font-family: var(--mono);
+  text-anchor: middle;
+  filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.9));
+  pointer-events: none;
+}
+
+.venn-text-sub {
+  fill: #fbcfe8;
+  font-weight: 600;
+  font-size: 10.5px;
+  font-family: var(--mono);
+  text-anchor: middle;
+  filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.9));
+  pointer-events: none;
+}
+
+/* ── Universe Corner & Exterior Box ── */
+.venn-universe-corner {
+  pointer-events: none;
+}
+
+.venn-universe-bg {
+  fill: rgba(15, 23, 42, 0.85);
+  stroke: rgba(255, 255, 255, 0.18);
+  stroke-width: 1px;
+  rx: 8px;
+}
+
+.venn-universe-text {
+  fill: #94a3b8;
+  font-size: 11px;
+  font-family: var(--mono);
+}
+
+.venn-universe-highlight {
+  fill: #38bdf8;
+  font-weight: 700;
+}
+
+/* ── Floating Tooltip ── */
+.venn-tooltip {
+  position: absolute;
+  pointer-events: none;
+  background: rgba(15, 23, 42, 0.95);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--border-focus);
+  border-radius: var(--r-md);
+  padding: .65rem .95rem;
+  font-size: .8rem;
+  color: var(--txt);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, .5);
+  z-index: 100;
+  transform: translate(-50%, -120%);
+  opacity: 0;
+  transition: opacity .15s ease;
+  white-space: nowrap;
+}
+
+.venn-tooltip.visible {
+  opacity: 1;
+}
+
+.venn-tooltip-title {
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: .25rem;
+  border-bottom: 1px solid rgba(255, 255, 255, .1);
+  padding-bottom: .2rem;
+}
+
+.venn-tooltip-detail {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  color: var(--txt-m);
+  font-family: var(--mono);
+}
+
+/* ── Regions Grid & Cards ── */
+.regions-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: .85rem;
+  width: 100%;
+}
+
+.region-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-sub);
+  border-radius: var(--r-md);
+  padding: .85rem;
+  display: flex;
+  flex-direction: column;
+  gap: .35rem;
+  transition: border-color var(--t-fast);
+}
+
+.region-card:hover {
+  border-color: rgba(255, 255, 255, .15);
+}
+
+.region-badge-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .5rem;
+}
+
+.region-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: .35rem;
+  font-size: .75rem;
+  font-weight: 600;
+  color: var(--txt);
+}
+
+.region-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.region-prob-val {
+  font-size: 1.3rem;
+  font-weight: 700;
+  font-family: var(--mono);
+  color: #fff;
+}
+
+.region-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: .72rem;
+  color: var(--txt-m);
+  font-family: var(--mono);
+}

@@ -19,7 +19,12 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/4.13.0/d3.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/venn.js/0.2.20/venn.min.js"></script>
 
+  <!-- Hojas de Estilo del Sistema y Módulos -->
   <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="modules/espacio_muestral/espacio_muestral.css">
+  <link rel="stylesheet" href="modules/diagrama_venn/diagrama_venn.css">
+  <link rel="stylesheet" href="modules/calculadora/calculadora.css">
+  <link rel="stylesheet" href="modules/ejemplos/ejemplos.css">
 </head>
 <body>
   <!-- Fondo lumínico -->
@@ -38,7 +43,7 @@
           </svg>
         </div>
         <div>
-          <h1 class="brand-title">VennProb <span class="badge-tag">v2.1</span></h1>
+          <h1 class="brand-title">VennProb <span class="badge-tag">v2.2</span></h1>
           <p class="brand-subtitle">Probabilidad · Conjuntos · Diagramas de Venn · Calculadora Científica</p>
         </div>
       </div>
@@ -824,11 +829,23 @@
   <!-- ── FOOTER ── -->
   <footer class="app-footer">
     <div class="footer-container">
-      <p>VennProb v2.1 © 2026 · Python · Flask · D3.js · Venn.js · KaTeX</p>
+      <p>VennProb v2.2 © 2026 · Arquitectura Modular · Python Flask · D3.js · Venn.js · KaTeX</p>
       <span class="status-indicator-mini"><span class="pulse-mini"></span>API REST Activa</span>
     </div>
   </footer>
 
+  <!-- Módulos Core / Compartidos -->
+  <script src="modules/common/state.js"></script>
+  <script src="modules/common/api.js"></script>
+  <script src="modules/common/navigation.js"></script>
+
+  <!-- Módulos de la Aplicación -->
+  <script src="modules/espacio_muestral/espacio_muestral.js"></script>
+  <script src="modules/diagrama_venn/diagrama_venn.js"></script>
+  <script src="modules/calculadora/calculadora.js"></script>
+  <script src="modules/ejemplos/ejemplos.js"></script>
+
+  <!-- Orquestador Principal -->
   <script src="app.js"></script>
 </body>
 </html>
