@@ -65,18 +65,16 @@ La interfaz está dividida en cuatro pestañas de navegación dedicadas:
 
 ```text
 VennProb_estadistica/
-├── backend/
-│   ├── app.py           # Servidor RESTful Flask y rutas API
-│   ├── logic.py         # Motor matemático, validaciones axiomáticas y particiones
-│   ├── test_logic.py    # Suite de pruebas unitarias para logic.py
-│   └── test_api.py      # Pruebas de integración de endpoints REST
-├── frontend/
-│   ├── index.html       # Estructura semántica, pestañas y teclado Casio
-│   ├── app.js           # Lógica cliente, renderizado Venn con etiquetas y motor calculadora
-│   └── style.css        # Sistema de diseño Glassmorphism, temas y display LCD
-├── .gitignore           # Exclusiones de control de versiones
-├── requirements.txt     # Dependencias de Python
-└── README.md            # Documentación general del proyecto
+├── app.py           # Servidor RESTful Flask y servicio de archivos estáticos
+├── logic.py         # Motor matemático, validaciones axiomáticas y particiones
+├── test_logic.py    # Suite de pruebas unitarias para logic.py
+├── test_api.py      # Pruebas de integración de endpoints REST
+├── index.html       # Estructura semántica, pestañas y teclado Casio
+├── app.js           # Lógica cliente, renderizado Venn con etiquetas y motor calculadora
+├── style.css        # Sistema de diseño Glassmorphism, temas y display LCD
+├── .gitignore       # Exclusiones de control de versiones
+├── requirements.txt # Dependencias de Python
+└── README.md        # Documentación general del proyecto
 ```
 
 ---
@@ -102,7 +100,7 @@ VennProb_estadistica/
 
 3. **Iniciar el servidor Flask:**
    ```bash
-   python backend/app.py
+   python app.py
    ```
    *El servidor quedará activo en:* `http://127.0.0.1:5000/`
 
@@ -117,8 +115,9 @@ VennProb_estadistica/
 El proyecto incluye 15 pruebas unitarias y de integración que verifican la consistencia matemática y las respuestas HTTP:
 
 ```bash
-# Ejecutar todas las pruebas del backend
-python -m unittest discover backend
+# Ejecutar pruebas unitarias y de integración
+python test_logic.py
+python test_api.py
 ```
 
 ---

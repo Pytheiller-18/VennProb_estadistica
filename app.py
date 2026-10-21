@@ -5,15 +5,12 @@ app.py - Servidor Flask y API RESTful para la resolución de problemas de probab
 import os
 from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
-try:
-    from backend.logic import solve_one_event, solve_two_events, solve_three_events, AxiomViolationError
-except ImportError:
-    from logic import solve_one_event, solve_two_events, solve_three_events, AxiomViolationError
+from logic import solve_one_event, solve_two_events, solve_three_events, AxiomViolationError
 
-# Configuración de rutas estáticas para poder servir el frontend opcionalmente desde Flask
-FRONTEND_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "frontend"))
+# Directorio raíz del proyecto (sin carpetas separadas)
+ROOT_DIR = os.path.abspath(os.path.dirname(__file__))
 
-app = Flask(__name__, static_folder=FRONTEND_DIR)
+app = Flask(__name__, static_folder=ROOT_DIR, static_url_path="")
 # Habilitar CORS para todas las rutas y orígenes
 CORS(app, resources={r"/api/*": {"origins": "*"}})
 
@@ -21,13 +18,13 @@ CORS(app, resources={r"/api/*": {"origins": "*"}})
 @app.route("/", methods=["GET"])
 def serve_index():
     """Sirve la interfaz web si se abre el servidor Flask en el navegador."""
-    return send_from_directory(FRONTEND_DIR, "index.html")
+    return send_from_directory(ROOT_DIR, "index.html")
 
 
 @app.route("/<path:filename>", methods=["GET"])
 def serve_static(filename):
     """Sirve archivos estáticos (app.js, style.css, etc.)."""
-    return send_from_directory(FRONTEND_DIR, filename)
+    return send_from_directory(ROOT_DIR, filename)
 
 
 @app.route("/api/health", methods=["GET"])

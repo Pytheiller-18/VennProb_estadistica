@@ -1,7 +1,7 @@
 import sys
 import unittest
 sys.path.insert(0, ".")
-from backend.logic import solve_two_events, solve_three_events, calc_simple_prob, AxiomViolationError
+from logic import solve_two_events, solve_three_events, calc_simple_prob, AxiomViolationError
 
 class TestLogic(unittest.TestCase):
     def test_simple_prob(self):

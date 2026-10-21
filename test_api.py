@@ -2,7 +2,7 @@ import sys
 import unittest
 import json
 sys.path.insert(0, ".")
-from backend.app import app
+from app import app
 
 class TestAPI(unittest.TestCase):
     def setUp(self):
